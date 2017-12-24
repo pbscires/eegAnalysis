@@ -34,7 +34,7 @@ def lineLenForTimestamp(rowIndex):
         return row
 
 
-def calculateLineLength(filename, p):
+def calculateLineLength(filename):
     global numSamplesPerEpoch
     global allChannelsDF
     global rowDiffsDf
@@ -57,32 +57,25 @@ def calculateLineLength(filename, p):
         # sifbufs above is a 23 x 921600 matrix
         # transpose it so that it becomes 921600 x 23 matrix
         sigbufs = sigbufs.transpose()
-        allChannelsDF = pd.DataFrame(data = sigbufs[:,:2], columns = signal_labels[:2])
-        llDf = pd.DataFrame(columns = signal_labels[:2])
-        rowDiffsDf = pd.DataFrame(columns = signal_labels[:2])
-        print (allChannelsDF.shape)
-#        for i in range(20):
-#            allChannelsDF = allChannelsDF.add(other = sig[i, :])
+        allChannelsDF = pd.DataFrame(data = sigbufs, columns = signal_labels)
+        rowDiffsDf = pd.DataFrame(columns = signal_labels)
+        print ("Shape of allChannelsDf = ", allChannelsDF.shape)
         print (allChannelsDF.head(10))
         
-        startIndex = 2980*256
-        endIndex = 3050*256
-#         for rowIndex in range(startIndex, endIndex):
-#             rowDiff = abs(allChannelsDF.iloc[rowIndex-1] - allChannelsDF.iloc[rowIndex])
-#             rowDiffsDf = rowDiffsDf.append(rowDiff, ignore_index=True)
-
         sigDiffs = np.delete(sigbufs, numSamples-1, 0) - np.delete(sigbufs, 0, 0)
         sigDiffs = np.absolute(sigDiffs)
-        rowDiffsDf = pd.DataFrame(data = sigDiffs[:,:2], columns = signal_labels[:2])
-        print (rowDiffsDf.head(10))
-#         rowDiffsDf = allChannelsDF.iloc[:numSamples-2] - allChannelsDF.iloc[1:]
-        print ("Done with calculating rowDiffsDf")
-        for j in range(numSamplesPerEpoch, (endIndex-startIndex)):
-            row = rowDiffsDf[(j-numSamplesPerEpoch):(j-1)].sum()
-#             row = rowDiffsDf.iloc[j-1]
-#             for i in range(2, numSamplesPerEpoch+1):
-#                 row = row + rowDiffsDf.iloc[j-i]
-            llDf = llDf.append(row, ignore_index=True)
+        print ("Shape of sigDiffs = ", sigDiffs.shape)
+        lastRowInd = numSamples - 2
+        endOfHeadInd = 0
+        begOfTailInd = lastRowInd-numSamplesPerEpoch+1
+        llMat = np.delete(sigDiffs, range(begOfTailInd, lastRowInd+1), 0)
+        for j in range(1, numSamplesPerEpoch):
+            endOfHeadInd += 1
+            begOfTailInd += 1
+            rowsToDel = list(range(endOfHeadInd)) + list(range(begOfTailInd, lastRowInd+1))
+#             print ("Removing the rows", rowsToDel)
+            llMat = llMat + np.delete(sigDiffs, rowsToDel, 0)
+        llDf = pd.DataFrame(data = llMat, columns = signal_labels)
                 
         print ("Printing Line Length Data frame for file", filename)
         print (llDf.head())
@@ -93,10 +86,10 @@ def calculateLineLength(filename, p):
     return
 
 
-p = Pool()
+# p = Pool()
 #p.map(calculateLineLength, [filesList[0]])
 #print (filesList[0])
 #calculateLineLength(filesList[0])
     
 print (sys.argv[1])
-calculateLineLength(sys.argv[1], p)
+calculateLineLength(sys.argv[1])
