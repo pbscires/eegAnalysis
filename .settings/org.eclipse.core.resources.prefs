@@ -1,2 +1,4 @@
 eclipse.preferences.version=1
+encoding//ExtractAndTransformFeatures/extractFeature_LineLength.py=utf-8
+encoding//ExtractAndTransformFeatures/extractFeature_halfWaveDuration.py=utf-8
 encoding//tests/LineLengthTest.py=utf-8

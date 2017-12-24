@@ -63,7 +63,7 @@ def calculateLLforSeizureFile(filename):
     if (re.search('\.dat', filename) != None):
         fileBasename = os.path.splitext(filename)[0]
         print ("fileBasename (seizure occurred) = ", fileBasename)
-        print (wfdb.sampfrom)
+#         print (wfdb.sampfrom)
         try:
 #            sig, fields = wfdb.srdsamp(fileBasename, sampfrom=0, sampto=10000)
             record = wfdb.rdsamp(fileBasename)
