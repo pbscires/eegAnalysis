@@ -54,17 +54,14 @@ def calculateLineLength(filename):
         sigDiffs = np.delete(sigbufs, numSamples-1, 0) - np.delete(sigbufs, 0, 0)
         sigDiffs = np.absolute(sigDiffs)
         print ("Shape of sigDiffs = ", sigDiffs.shape)
-        lastRowInd = numSamples - 2
-        endOfHeadInd = 0
-        begOfTailInd = lastRowInd-numSamplesPerEpoch+1
 
-        startingRowsArr = np.arange(0, numSamples, slidingWindowLength)
+        startingRowsArr = np.arange(0, numSamples, int(slidingWindowLength*sampleFrequency/1000))
         print (startingRowsArr.shape)
 #         print(startingRowsArr)
         j = len(startingRowsArr)
         j -= 1
         print ("j=", j, "startingRowsArr[", j, "] = ", startingRowsArr[j])
-        lastEpochIndex = numSamples - (epochLength*sampleFrequency / 1000)
+        lastEpochIndex = numSamples - numSamplesPerEpoch
         print ("lastEpochIndex = ", lastEpochIndex)
         while (startingRowsArr[j] > lastEpochIndex):
             j -= 1
@@ -72,22 +69,23 @@ def calculateLineLength(filename):
         startingRowsArr = np.delete(startingRowsArr, range(j,len(startingRowsArr)))
         print ("j=", j)
         print (startingRowsArr.shape)
-        
-        llMat = np.delete(sigDiffs, list(range(begOfTailInd, lastRowInd+1)), 0)
+        print (startingRowsArr[j-1])
+        timer3 = ElapsedTime()
+        timer3.reset()
         timer2 = ElapsedTime()
+        timer2.reset()
+        llMat = sigDiffs[startingRowsArr,]
         for j in range(1, numSamplesPerEpoch):
-            timer2.reset()
-            endOfHeadInd += 1
-            begOfTailInd += 1
-            rowsToDel = list(range(endOfHeadInd)) + list(range(begOfTailInd, lastRowInd+1))
-#             print ("Removing the rows", rowsToDel)
-            llMat = llMat + np.delete(sigDiffs, rowsToDel, 0)
-            print("j=", j, ", timer2 elapsed time=", timer2.timeDiff())
+            startingRowsArr = startingRowsArr + 1
+            llMat = llMat + sigDiffs[startingRowsArr,]
+            if (j % 256 == 0):
+                print("j=", j, ", timer2 elapsed time=", timer2.timeDiff())
         llDf = pd.DataFrame(data = llMat, columns = signal_labels)
                 
         print ("Printing Line Length Data frame for file", filename)
         print (llDf.head())
         print (llDf.shape)
+        print ("timer 3 = ", timer3.timeDiff())
         plt.figure()
         plt.plot(llDf)
         plt.show()
