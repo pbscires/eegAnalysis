@@ -26,3 +26,7 @@ class ConfigJsonReader(object):
         subDir = self.jsonData['SubjectDirectories'][subjectName]
         subjectDir = os.path.join(self.getRootDir(), subDir)
         return subjectDir
+    
+    def getSubjectsList(self):
+        subjectNames = self.jsonData['SubjectDirectories'].keys()
+        return subjectNames

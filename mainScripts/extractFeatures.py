@@ -13,7 +13,7 @@ if __name__ == '__main__':
     print ("edfFilePath = ", edfFilePath)
     llObj = LineLength()
     
-    if (re.search('\.edf', edfFilePath) != None):
+    if (re.search('\.edf$', edfFilePath) != None):
         f = pyedflib.EdfReader(edfFilePath)
         numChannels = f.signals_in_file
         print ("number of signals in file = ", numChannels)
