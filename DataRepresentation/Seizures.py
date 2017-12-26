@@ -38,13 +38,20 @@ class Seizures(object):
         epochLen and slidingWindowLen are in milliseconds
         '''
         # Convert epochNum to start and end datetime objects
+#         print ("recordFile = ", recordFile, ", epochNum =", epochNum, ", epochLen = ", epochLen,
+#                ", slidingWindowLen = ", slidingWindowLen)
         epochStartSeconds = int(epochNum * slidingWindowLen / 1000)
         epochEndSeconds = epochStartSeconds + int(epochLen / 1000)
         seizureInfoObj = self.getSeizureInfoObj(recordFile)
+#         print ("seizureInfoObj = ", seizureInfoObj)
         if (seizureInfoObj != None):
             epochStart = self.getDateTimeObjFromSeconds(seizureInfoObj.fileStartTime, epochStartSeconds)
             epochEnd = self.getDateTimeObjFromSeconds(seizureInfoObj.fileStartTime, epochEndSeconds)
             for i in range(len(seizureInfoObj.seizureStartTimes)):
+#                 if ((recordFile == "chb01_03.edf") and (epochNum > 1495) and (epochNum < 1520)):
+#                     print("epochStart = ", epochStart, ", epochEnd = ", epochEnd)
+#                     print ("seizureStart = ", seizureInfoObj.seizureStartTimes[i],
+#                            "seizureEnd = ", seizureInfoObj.seizureEndTimes[i])
                 if (( (epochStart >= seizureInfoObj.seizureStartTimes[i]) and
                       (epochStart <= seizureInfoObj.seizureEndTimes[i])) or
                      ( (epochEnd >= seizureInfoObj.seizureStartTimes[i]) and
@@ -54,6 +61,7 @@ class Seizures(object):
 
     def getSeizureInfoObj(self, recordFile):
         for seizureInfoObj in self.seizures:
+#             print ("filePath = ", seizureInfoObj.filePath, ", recordFile = ", recordFile)
             if (seizureInfoObj.filePath == recordFile):
                 return (seizureInfoObj)
         return None
@@ -85,6 +93,7 @@ class Seizures(object):
         self.jsonRoot = json.load(f)
         f.close()
         subjectsList = self.jsonRoot.keys()
+#         print ("Subjects list = ", subjectsList)
         for subject in subjectsList:
             seizuresJsonArr = self.jsonRoot[subject]
             for seizureElem in seizuresJsonArr:
@@ -100,9 +109,9 @@ class Seizures(object):
                     datetimeObj = self.getDateTimeObjFromSeconds(fileStartTime, int(timeInSeconds))
                     seizureEndTimes.append(datetimeObj)
 
-            seizureInfoElem = SeizureInfo(fileName, fileStartTime, fileEndTime, seizureStartTimes, seizureEndTimes)
-            print (seizureInfoElem)
-            self.seizures.append(seizureInfoElem)
+                seizureInfoElem = SeizureInfo(fileName, fileStartTime, fileEndTime, seizureStartTimes, seizureEndTimes)
+#                 print (seizureInfoElem)
+                self.seizures.append(seizureInfoElem)
             
             
         

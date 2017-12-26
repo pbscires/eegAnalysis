@@ -107,24 +107,48 @@ class LineLength(object):
         '''
         numEpochs = self.llDf.shape[0]
         numChannels = self.llDf.shape[1]
-        columnsDone = dict()
         print ("numEpochs = ", numEpochs, ", numChannels = ", numChannels)
-        for columnName in self.llDf.columns.values:
-#         for columnName in ['T8-P8']:
-            if (columnName == 'T8-P8'):
-                continue
-            if (columnName not in columnsDone):
-                columnsDone[columnName] = True
+        fileToWrite = '.'.join([outFilePath, recordFile, 'csv'])
+        f = open(fileToWrite, "w")
+        for i in range(numEpochs):
+            if seizures.isSeizurePresent(recordFile, i, self.epochLength, self.slidingWindowLen):
+                seizureValue = 1
             else:
-                continue
-            fileToWrite = ''.join([outFilePath, '.', recordFile, '.', columnName, '.csv'])
-            f = open(fileToWrite, "w")
-            for i in range(numEpochs):
-                if seizures.isSeizurePresent(recordFile, i, self.epochLength, self.slidingWindowLen):
-                    seizureValue = 1
+                seizureValue = -1 
+            strToWrite = ''
+            columnsDone = dict()
+            for columnName in self.llDf.columns.values:
+                if (columnName == 'T8-P8'):
+                    continue
+                if (columnName not in columnsDone):
+                    columnsDone[columnName] = True
                 else:
-                    seizureValue = -1 
-                strToWrite = ','.join([str(i), str(self.llDf.loc[i, columnName]), str(seizureValue)])
-                f.write(strToWrite)
-                f.write("\n")
-            f.close()
+                    continue
+                if (strToWrite == ''):
+                    strToWrite = str(self.llDf.loc[i, columnName])
+                else:
+                    strToWrite = ','.join([strToWrite, str(self.llDf.loc[i, columnName])])
+
+            strToWrite = ','.join([str(i), strToWrite, str(seizureValue)])
+            f.write(strToWrite)
+            f.write("\n")
+        f.close()
+
+#         for columnName in self.llDf.columns.values:
+#             if (columnName == 'T8-P8'):
+#                 continue
+#             if (columnName not in columnsDone):
+#                 columnsDone[columnName] = True
+#             else:
+#                 continue
+#             fileToWrite = ''.join([outFilePath, '.', recordFile, '.', columnName, '.csv'])
+#             f = open(fileToWrite, "w")
+#             for i in range(numEpochs):
+#                 if seizures.isSeizurePresent(recordFile, i, self.epochLength, self.slidingWindowLen):
+#                     seizureValue = 1
+#                 else:
+#                     seizureValue = -1 
+#                 strToWrite = ','.join([str(i), str(self.llDf.loc[i, columnName]), str(seizureValue)])
+#                 f.write(strToWrite)
+#                 f.write("\n")
+#             f.close()

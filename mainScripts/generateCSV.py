@@ -75,10 +75,14 @@ if __name__ == '__main__':
     
     seizuresInfo = Seizures(cfgReader)
     seizuresInfo.loadSeizuresFile(seizuresFile)
+    
+#     exit(0)
 
     for subject in subjectNames:
         eegRecordFiles = getEEGRecordFiles(subject)
         for filePath in eegRecordFiles:
+#             if (re.search('chb01_03.edf$', filePath) == None):
+#                 continue
             print ("working on subject ", subject, ", record = ", filePath)
             eegRecord = EEGRecord(filePath, subject)
             eegRecord.loadFile()
