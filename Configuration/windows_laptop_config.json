@@ -1,6 +1,6 @@
 {
-    "RootDirectory" : "C:\\Users\\pranavburugula\\My Documents\\YHS\\ScienceResearch\\Data\\edf",
-    "SubjectDirectories" : {
+    "RootDirectory" : "D:\\Documents\\database_mit\\",
+    "SubjectDirectories" : [{
         "chb01" : "chbmit01_12\\chb01",
         "chb02" : "chbmit01_12\\chb02",
         "chb03" : "chbmit01_12\\chb03",
@@ -25,7 +25,7 @@
         "chb22" : "chbmit13_24\\chb22",
         "chb23" : "chbmit13_24\\chb23",
         "chb24" : "chbmit13_24\\chb24"
-    },
+    }],
     "SubjectSummaryFiles" : {
         "chb01" : "chb01-summary.txt",
         "chb02" : "chb02-summary.txt",
