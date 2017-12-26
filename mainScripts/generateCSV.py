@@ -8,6 +8,7 @@ import os
 import re
 from Features.LineLength import LineLength
 from DataRepresentation.EEGRecord import EEGRecord
+from DataRepresentation.Seizures import Seizures
 
 pgmName = sys.argv[0]
 if (len(sys.argv) > 1):
@@ -21,6 +22,7 @@ def readArguments():
     global configFile
     global seizuresFile
     global features
+    global outFilePath
 
     print ("cfgFilename = ", cfgFilename)
     jsonData = JsonReader(cfgFilename)
@@ -28,11 +30,13 @@ def readArguments():
     configFile = jsonData.get_value("ConfigFile")
     seizuresFile = jsonData.get_value("SeizuresFile")
     features = jsonData.get_value("Features")
+    outFilePath = jsonData.get_value("OutFilePath")
     
     print ("subjectNames = ", subjectNames)
     print ("configFile = ", configFile)
     print ("seizuresFile = ", seizuresFile)
     print ("featues = ", features)
+    print ("OutFilePath = ", outFilePath)
     return
 
 def extractFeature(featureName, eegRecord):
@@ -44,7 +48,6 @@ def getEEGRecordFiles(subjectName):
     global cfgReader
     
     eegRecordFiles = []
-    cfgReader = ConfigJsonReader(configFile)
     subjectDir = cfgReader.getSubjectDir(subjectName)
     print ("subjectDir = ", subjectDir)
 
@@ -61,13 +64,22 @@ def getEEGRecordFiles(subjectName):
 if __name__ == '__main__':
     global cfgReader
     global subjectNames
+    global configFile
+    global seizuresFile
+    global outFilePath
+
 
     print ("pgmName = ", pgmName)
     readArguments()
+    cfgReader = ConfigJsonReader(configFile)
+    
+    seizuresInfo = Seizures(cfgReader)
+    seizuresInfo.loadSeizuresFile(seizuresFile)
 
     for subject in subjectNames:
         eegRecordFiles = getEEGRecordFiles(subject)
         for filePath in eegRecordFiles:
+            print ("working on subject ", subject, ", record = ", filePath)
             eegRecord = EEGRecord(filePath, subject)
             eegRecord.loadFile()
             sigbufs = eegRecord.getSigbufs()
@@ -75,3 +87,4 @@ if __name__ == '__main__':
             sampleFrequency = eegRecord.getSampleFrequency()
             llFeature = LineLength()
             llFeature.extractFeature(sigbufs, signal_labels, sampleFrequency)
+            llFeature.saveLLdfWithSeizureInfo(outFilePath, seizuresInfo, os.path.basename(filePath))

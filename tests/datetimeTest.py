@@ -7,7 +7,8 @@ import re
 
 jsonStr1 = '{"NumSeizures":1,"EndTime":"14:23:36","FileName":"chb03_01.edf","StartTime":"13:23:36","SeizureEndTimes":[414],"SeizureStartTimes":[362]}'
 jsonStr2 = '{"NumSeizures":1,"EndTime":"12:41:33","FileName":"chb04_05.edf","StartTime":"10:02:37","SeizureEndTimes":[7853],"SeizureStartTimes":[7804]}'
-jsonStr = '{"NumSeizures":1,"EndTime":"24:02:26","FileName":"chb10_27.edf","StartTime":"22:02:08","SeizureEndTimes":[2447],"SeizureStartTimes":[2382]}'
+jsonStr3 = '{"NumSeizures":1,"EndTime":"24:02:26","FileName":"chb10_27.edf","StartTime":"22:02:08","SeizureEndTimes":[2447],"SeizureStartTimes":[2382]}'
+jsonStr = '{"NumSeizures":6,"EndTime":"17:07:06","FileName":"chb12_27.edf","StartTime":"16:07:06","SeizureEndTimes":[951,1124,1753,1963,2440,2669],"SeizureStartTimes":[916,1097,1728,1921,2388,2621]}'
 
 
 def getDateTimeObj(timeStr):

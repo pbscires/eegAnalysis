@@ -99,3 +99,32 @@ class LineLength(object):
                 f.write(strToWrite)
                 f.write("\n")
             f.close()
+    
+    def saveLLdfWithSeizureInfo(self, outFilePath, seizures, recordFile):
+        '''
+        Save the Line Length feature in the given file in CSV format;
+        Include the seizures information as +1 (True) or -1 (False)
+        '''
+        numEpochs = self.llDf.shape[0]
+        numChannels = self.llDf.shape[1]
+        columnsDone = dict()
+        print ("numEpochs = ", numEpochs, ", numChannels = ", numChannels)
+        for columnName in self.llDf.columns.values:
+#         for columnName in ['T8-P8']:
+            if (columnName == 'T8-P8'):
+                continue
+            if (columnName not in columnsDone):
+                columnsDone[columnName] = True
+            else:
+                continue
+            fileToWrite = ''.join([outFilePath, '.', recordFile, '.', columnName, '.csv'])
+            f = open(fileToWrite, "w")
+            for i in range(numEpochs):
+                if seizures.isSeizurePresent(recordFile, i, self.epochLength, self.slidingWindowLen):
+                    seizureValue = 1
+                else:
+                    seizureValue = -1 
+                strToWrite = ','.join([str(i), str(self.llDf.loc[i, columnName]), str(seizureValue)])
+                f.write(strToWrite)
+                f.write("\n")
+            f.close()
