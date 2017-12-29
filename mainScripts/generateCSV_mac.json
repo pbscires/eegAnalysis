@@ -1,0 +1,7 @@
+{
+    "SubjectNames" : ["chb02"],
+    "ConfigFile" : "../Configuration/mac_osx_config.json",
+    "SeizuresFile" : "../Configuration/seizures.json",
+    "Features" : ["LineLength"],
+    "OutFilePath" : "/Users/rsburugula/Documents/tmp/chb02"
+}

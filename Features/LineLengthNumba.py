@@ -6,7 +6,9 @@ import numpy as np
 import pandas as pd
 from util.ElapsedTime import ElapsedTime
 import matplotlib.pyplot as plt
-from numba import vectorize, float64
+from numba import vectorize, float64, guvectorize
+
+
 from Features.calcLLdfScript import calcLLdf
 
 class LineLengthNumba(object):
@@ -75,18 +77,19 @@ class LineLengthNumba(object):
         print (self.llDf.head())
         print (self.llDf.shape)
     
-#     @vectorize
-#     def calcLLdf(self, sigDiffs, startingRowsArr, numSamplesPerEpoch):
-# #         timer2 = ElapsedTime()
-# #         timer2.reset()
-#         llMat = sigDiffs[startingRowsArr,]
-#         for j in range(1, numSamplesPerEpoch):
-#             startingRowsArr = startingRowsArr + 1
-#             llMat = llMat + sigDiffs[startingRowsArr,]
-# #             if (j % 256 == 0):
-# #                 print("j=", j, ", timer2 elapsed time=", timer2.timeDiff())
-#         llMat = llMat / numSamplesPerEpoch
-#         return llMat
+    @guvectorize(["void(float64[:,:], float64[:], float64, float64[:,:])"],
+                 "(m,n),(p),()->(p,n)")
+    def calcLLdf(self, sigDiffs, startingRowsArr, numSamplesPerEpoch):
+#         timer2 = ElapsedTime()
+#         timer2.reset()
+        llMat = sigDiffs[startingRowsArr,]
+        for j in range(1, numSamplesPerEpoch):
+            startingRowsArr = startingRowsArr + 1
+            llMat = llMat + sigDiffs[startingRowsArr,]
+#             if (j % 256 == 0):
+#                 print("j=", j, ", timer2 elapsed time=", timer2.timeDiff())
+        llMat = llMat / numSamplesPerEpoch
+        return llMat
     
     def plotLLdf(self, channels=None):
         plt.figure()

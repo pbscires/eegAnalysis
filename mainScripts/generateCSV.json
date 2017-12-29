@@ -1,7 +1,1 @@
-{
-    "SubjectNames" : ["chb02"],
-    "ConfigFile" : "..\\Configuration\\windows_laptop_config.json",
-    "SeizuresFile" : "..\\Configuration\\seizures.json",
-    "Features" : ["LineLength"],
-    "OutFilePath" : "D:\\Documents\\csv\\chb02"
-}
+generateCSV_mac.json
