@@ -1,7 +1,7 @@
 {
-    "SubjectNames" : ["chb02"],
+    "SubjectNames" : ["chb01"],
     "ConfigFile" : "..\\Configuration\\windows_laptop_config.json",
     "SeizuresFile" : "..\\Configuration\\seizures.json",
     "Features" : ["LineLength"],
-    "OutFilePath" : "D:\\Documents\\csv\\chb02"
+    "OutFilePath" : "D:\\Documents\\csvNumba\\chb01"
 }

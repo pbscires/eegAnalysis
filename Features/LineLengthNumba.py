@@ -8,6 +8,22 @@ from util.ElapsedTime import ElapsedTime
 import matplotlib.pyplot as plt
 from numba import vectorize, float64, guvectorize
 
+@guvectorize(["void(float64[:,:], int64[:], int64, float64[:,:])"],
+             "(m,n),(p),()->(p,n)", target='cpu')
+def calcLLdf(sigDiffs, startingRowsArr, numSamplesPerEpoch, llMat):
+#         timer2 = ElapsedTime()
+#         timer2.reset()
+    llMat = sigDiffs[startingRowsArr,]
+    for j in range(1, numSamplesPerEpoch):
+        startingRowsArr = startingRowsArr + 1
+        llMat = llMat + sigDiffs[startingRowsArr,]
+#             if (j % 256 == 0):
+#                 print("j=", j, ", timer2 elapsed time=", timer2.timeDiff())
+    llMat = llMat / numSamplesPerEpoch
+#     return llMat
+
+
+
 class LineLengthNumba(object):
     '''
     Contains methods to extract LineLength feature
@@ -69,24 +85,10 @@ class LineLengthNumba(object):
 #         llMat = llMat / numSamplesPerEpoch
 #         self.llDf = pd.DataFrame(data = llMat, columns = signal_labels)
 
-        llMat = self.calcLLdf(sigDiffs, startingRowsArr, numSamplesPerEpoch)
+        llMat = calcLLdf(sigDiffs, startingRowsArr, numSamplesPerEpoch)
         self.llDf = pd.DataFrame(data = llMat, columns = self.signal_labels)
         print (self.llDf.head())
         print (self.llDf.shape)
-    
-    @guvectorize(["void(float64[:,:], float64[:], float64, float64[:,:])"],
-                 "(m,n),(p),()->(p,n)", target='cuda')
-    def calcLLdf(self, sigDiffs, startingRowsArr, numSamplesPerEpoch):
-#         timer2 = ElapsedTime()
-#         timer2.reset()
-        llMat = sigDiffs[startingRowsArr,]
-        for j in range(1, numSamplesPerEpoch):
-            startingRowsArr = startingRowsArr + 1
-            llMat = llMat + sigDiffs[startingRowsArr,]
-#             if (j % 256 == 0):
-#                 print("j=", j, ", timer2 elapsed time=", timer2.timeDiff())
-        llMat = llMat / numSamplesPerEpoch
-        return llMat
     
     def plotLLdf(self, channels=None):
         plt.figure()
