@@ -2,6 +2,7 @@
     "SubjectNames" : ["chb01"],
     "ConfigFile" : "../Configuration/mac_osx_config.json",
     "SeizuresFile" : "../Configuration/seizures.json",
-    "Features" : ["LineLength"],
+    "Features" : ["FFT"],
+    "Features_commented" : ["LineLength"],
     "OutFilePath" : "/tmp/chb01"
 }

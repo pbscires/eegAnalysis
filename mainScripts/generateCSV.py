@@ -7,9 +7,10 @@ import sys
 import os
 import re
 from Features.LineLength import LineLength
+from Features.FastFourierTransform import FFT
 from DataRepresentation.EEGRecord import EEGRecord
 from DataRepresentation.Seizures import Seizures
-
+from util.ElapsedTime import ElapsedTime
 pgmName = sys.argv[0]
 if (len(sys.argv) > 1):
     cfgFilename = sys.argv[1]
@@ -67,6 +68,7 @@ if __name__ == '__main__':
     global configFile
     global seizuresFile
     global outFilePath
+    global features
 
 
     print ("pgmName = ", pgmName)
@@ -77,8 +79,9 @@ if __name__ == '__main__':
     seizuresInfo.loadSeizuresFile(seizuresFile)
     
 #     exit(0)
-
+    timer1 = ElapsedTime()
     for subject in subjectNames:
+        timer1.reset()
         eegRecordFiles = getEEGRecordFiles(subject)
         for filePath in eegRecordFiles:
 #             if (re.search('chb01_03.edf$', filePath) == None):
@@ -89,6 +92,13 @@ if __name__ == '__main__':
             sigbufs = eegRecord.getSigbufs()
             signal_labels = eegRecord.getSingalLabels()
             sampleFrequency = eegRecord.getSampleFrequency()
-            llFeature = LineLength()
-            llFeature.extractFeature(sigbufs, signal_labels, sampleFrequency)
-            llFeature.saveLLdfWithSeizureInfo(outFilePath, seizuresInfo, os.path.basename(filePath))
+            if ("LineLength" in features):
+                llFeature = LineLength()
+                llFeature.extractFeature(sigbufs, signal_labels, sampleFrequency)
+                llFeature.saveLLdfWithSeizureInfo(outFilePath, seizuresInfo, os.path.basename(filePath))
+            if ("FFT" in features):
+                fftObj = FFT()
+                fftObj.extractFeatureMultiProcessing(sigbufs, signal_labels, sampleFrequency)
+#                 fftObj.extractFeature(sigbufs, signal_labels, sampleFrequency)
+                fftObj.saveFFTWithSeizureInfo(outFilePath, seizuresInfo, os.path.basename(filePath))
+        print ("Time took for subject %s is %f" % subject, timer1.timeDiff())
