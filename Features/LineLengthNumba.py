@@ -8,9 +8,6 @@ from util.ElapsedTime import ElapsedTime
 import matplotlib.pyplot as plt
 from numba import vectorize, float64, guvectorize
 
-
-from Features.calcLLdfScript import calcLLdf
-
 class LineLengthNumba(object):
     '''
     Contains methods to extract LineLength feature
@@ -72,13 +69,13 @@ class LineLengthNumba(object):
 #         llMat = llMat / numSamplesPerEpoch
 #         self.llDf = pd.DataFrame(data = llMat, columns = signal_labels)
 
-        llMat = calcLLdf(sigDiffs, startingRowsArr, numSamplesPerEpoch)
+        llMat = self.calcLLdf(sigDiffs, startingRowsArr, numSamplesPerEpoch)
         self.llDf = pd.DataFrame(data = llMat, columns = self.signal_labels)
         print (self.llDf.head())
         print (self.llDf.shape)
     
     @guvectorize(["void(float64[:,:], float64[:], float64, float64[:,:])"],
-                 "(m,n),(p),()->(p,n)")
+                 "(m,n),(p),()->(p,n)", target='cuda')
     def calcLLdf(self, sigDiffs, startingRowsArr, numSamplesPerEpoch):
 #         timer2 = ElapsedTime()
 #         timer2.reset()
