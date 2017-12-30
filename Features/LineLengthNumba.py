@@ -6,20 +6,31 @@ import numpy as np
 import pandas as pd
 from util.ElapsedTime import ElapsedTime
 import matplotlib.pyplot as plt
-from numba import vectorize, float64, guvectorize
+from numba import vectorize, int32, float32, guvectorize
 
-@guvectorize(["void(float64[:,:], int64[:], int64, float64[:,:])"],
+@guvectorize(['void(float64[:,:], int32[:], int32, float64[:,:])',
+              'void(float32[:,:], int32[:], int32, float32[:,:])'],
              "(m,n),(p),()->(p,n)", target='cpu')
 def calcLLdf(sigDiffs, startingRowsArr, numSamplesPerEpoch, llMat):
 #         timer2 = ElapsedTime()
 #         timer2.reset()
-    llMat = sigDiffs[startingRowsArr,]
-    for j in range(1, numSamplesPerEpoch):
-        startingRowsArr = startingRowsArr + 1
-        llMat = llMat + sigDiffs[startingRowsArr,]
+#     llMat = np.zeros(len(startingRowsArr), sigDiffs.shape[1])
+#     llMat = sigDiffs[startingRowsArr,]
+    for i in range(llMat.shape[0]):
+        for j in range(llMat.shape[1]):
+            llMat[i,j] = sigDiffs[startingRowsArr[i], j]
+    for y in range(1, numSamplesPerEpoch):
+        for i in range(len(startingRowsArr)):
+            startingRowsArr[i] += 1
+        
+        for i in range(llMat.shape[0]):
+            for j in range(llMat.shape[1]):
+                llMat[i,j] += sigDiffs[startingRowsArr[i],j]
 #             if (j % 256 == 0):
 #                 print("j=", j, ", timer2 elapsed time=", timer2.timeDiff())
-    llMat = llMat / numSamplesPerEpoch
+    for i in range(llMat.shape[0]):
+        for j in range(llMat.shape[1]):
+            llMat[i,j] /= numSamplesPerEpoch
 #     return llMat
 
 
@@ -84,7 +95,7 @@ class LineLengthNumba(object):
 #                 print("j=", j, ", timer2 elapsed time=", timer2.timeDiff())
 #         llMat = llMat / numSamplesPerEpoch
 #         self.llDf = pd.DataFrame(data = llMat, columns = signal_labels)
-
+        llMat = np.zeros((len(startingRowsArr), sigDiffs.shape[1]), dtype=np.float64)
         llMat = calcLLdf(sigDiffs, startingRowsArr, numSamplesPerEpoch)
         self.llDf = pd.DataFrame(data = llMat, columns = self.signal_labels)
         print (self.llDf.head())
