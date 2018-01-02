@@ -3,6 +3,7 @@
 '''
 import numpy as np
 import pyedflib
+import re
 
 class EEGRecord(object):
     '''
@@ -35,6 +36,22 @@ class EEGRecord(object):
         # sigbufs above is a 23 x 921600 matrix
         # transpose it so that it becomes 921600 x 23 matrix
         self.sigbufs = self.sigbufs.transpose()
+        
+        # cleanup the sigbufs and signal_labels so that duplicate signals
+        # are eliminated.
+        columnsToDel = []
+        labelsRead = []
+        for i in range(len(self.signal_labels)):
+            if (re.search('\w+\d+-\w+\d+', self.signal_labels[i]) == None):
+                columnsToDel.append(i)
+            if (self.signal_labels[i] in labelsRead):
+                if (i not in columnsToDel):
+                    columnsToDel.append[i]
+        
+        # Now remove the columns from sig_labels and sigbufs
+        self.sigbufs = np.delete(self.sigbufs, columnsToDel, axis=1)
+        self.signal_labels = np.delete(self.signal_labels, columnsToDel, axis=0)
+        print ("new signal labels = ", self.signal_labels)
     
     def getSigbufs(self):
         return self.sigbufs

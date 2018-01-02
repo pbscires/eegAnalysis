@@ -136,7 +136,8 @@ class FFT(object):
     def saveFFTWithSeizureInfo(self, outFilePath, seizures, recordFile):
         print ("numEpochWindows = ", self.numEpochWindows, ", numChannels = ", self.numChannels,
                ", numDivisions = ", self.numDivisions)
-        fileToWrite = '.'.join([outFilePath, recordFile, 'csv'])
+#         fileToWrite = '.'.join([outFilePath, recordFile, 'csv'])
+        fileToWrite = outFilePath
         f = open(fileToWrite, "w")
         for i in range(self.numEpochWindows):
             if seizures.isSeizurePresent(recordFile, i, self.epochLength, self.slidingWindowLen):
