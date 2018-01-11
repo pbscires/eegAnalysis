@@ -27,8 +27,10 @@ class KNNClassifier():
         arr = np.genfromtxt(self.csv_path, delimiter=',')
         print(arr.shape)
         self.X = np.delete(arr, [arr.shape[1]-1], axis=1)
+        self.X = np.delete(self.X, [0], axis=0)
         print(self.X.shape)
         self.y = np.delete(arr, list(range(arr.shape[1]-1)), axis=1)
+        self.y = np.delete(self.y, [0], axis=0)
         print(self.y.shape)
     
     def preprocess(self):
