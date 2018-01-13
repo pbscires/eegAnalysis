@@ -78,6 +78,8 @@ class FFT(object):
         fftMat = np.zeros((numEpochWindows, numChannels * self.numDivisions))
         p = Pool()
         fftArrList = p.map(self.calculateFFTperEpoch, list(range(numEpochWindows)))
+        p.close()
+        p.join()
         print ("len of fftArrList = ", len(fftArrList))
         i = 0
         for arr in fftArrList:

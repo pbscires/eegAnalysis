@@ -42,9 +42,9 @@
         "chb23" : ["chb23_.*.edf$"],
         "chb24" : ["chb24_.*.edf$"]
     },
-    "ConfigFile" : "../Configuration/mac_osx_config.json",
-    "SeizuresFile" : "../Configuration/seizures.json",
-    "Features" : ["LineLength"],
+    "ConfigFile" : "..\\Configuration\\windows_laptop_config.json",
+    "SeizuresFile" : "..\\Configuration\\seizures.json",
+    "Features" : ["FFT"],
     "Features_all" : ["LineLength", "FFT"],
-    "OutDir" : "/Users/rsburugula/Documents/tmp/chb_all"
+    "OutDir" : "D:\\Documents\\csv_fft"
 }
