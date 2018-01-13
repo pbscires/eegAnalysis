@@ -38,7 +38,7 @@ with tf.device('/gpu:0'):
     classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
                                             hidden_units=[10,20,10],
                                             n_classes=3,
-                                            model_dir="iris_model6")
+                                            model_dir="iris_model")
     
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
             x={"x": np.array(training_set.data)},

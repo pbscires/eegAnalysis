@@ -28,10 +28,10 @@ class DNNClassifier(object):
                 filename=csv_path_test,
                 target_dtype=np.int,
                 features_dtype=np.float64)
-        with tf.device('/gpu:0'):
+        with tf.device('/cpu:0'):
             feature_columns = [tf.feature_column.numeric_column("x", shape=[21])]
-            self.classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
-                                                hidden_units=[10,20,10],
+            self.classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,
+                                                hidden_units=[100,10],
                                                 n_classes=2,
                                                 model_dir="DNNClassifier_data")
         
@@ -53,7 +53,7 @@ class DNNClassifier(object):
     def train(self):
         timer = ElapsedTime()
         timer.reset()
-        with tf.device('/gpu:0'):
+        with tf.device('/cpu:0'):
             train_input_fn = tf.estimator.inputs.numpy_input_fn(x={"x" : np.array(self.training_set.data)}, y=self.training_set.target, num_epochs=None, shuffle=False)
         
         with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
@@ -62,7 +62,7 @@ class DNNClassifier(object):
         print(timer.timeDiff())
         
     def test(self):
-        with tf.device('/gpu:0'):
+        with tf.device('/cpu:0'):
             test_input_fn = tf.estimator.inputs.numpy_input_fn(x={"x" : np.array(self.test_set.data)}, y=self.test_set.target, num_epochs=None, shuffle=False)
         
         with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
