@@ -8,6 +8,8 @@ from sklearn.cross_validation import train_test_split
 from sklearn.preprocessing.data import StandardScaler
 import tensorflow as tf
 from util.ElapsedTime import ElapsedTime
+from tensorflow.contrib.learn.python.learn.estimators.estimator import SKCompat
+from tensorflow.contrib.metrics.python.metrics.classification import accuracy
 
 class DNNClassifier(object):
     '''
@@ -22,18 +24,20 @@ class DNNClassifier(object):
         self.csv_path = csv_path_train
         self.training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
             filename=csv_path_train,
-            target_dtype=np.int,
-            features_dtype=np.float64)
+            target_dtype=np.float32,
+            features_dtype=np.float32)
         self.test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
                 filename=csv_path_test,
-                target_dtype=np.int,
-                features_dtype=np.float64)
-        with tf.device('/cpu:0'):
+                target_dtype=np.float32,
+                features_dtype=np.float32)
+        with tf.device('/gpu:0'):
             feature_columns = [tf.feature_column.numeric_column("x", shape=[21])]
-            self.classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,
+            self.classifier = SKCompat(tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,
                                                 hidden_units=[100,10],
                                                 n_classes=2,
-                                                model_dir="DNNClassifier_data")
+                                                model_dir="DNNClassifier_data"))
+            
+        print('Initialized')
         
     def create_arrays(self):
         arr = np.genfromtxt(self.csv_path, delimiter=',')
@@ -53,19 +57,25 @@ class DNNClassifier(object):
     def train(self):
         timer = ElapsedTime()
         timer.reset()
-        with tf.device('/cpu:0'):
-            train_input_fn = tf.estimator.inputs.numpy_input_fn(x={"x" : np.array(self.training_set.data)}, y=self.training_set.target, num_epochs=None, shuffle=False)
-        
+        print('Started training')
+#         with tf.device('/gpu:0'):
+#             train_input_fn = tf.estimator.inputs.numpy_input_fn(x={"x" : np.array(self.training_set.data)}, y=self.training_set.target, num_epochs=None, shuffle=False)
+#         
         with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
-            self.classifier.train(input_fn=train_input_fn, steps=1)
+            self.classifier.fit(x={"x" : np.array(self.training_set.data)}, y=self.training_set.target, steps=1)
         
-        print(timer.timeDiff())
+        print('Ended in: ', timer.timeDiff())
         
     def test(self):
-        with tf.device('/cpu:0'):
-            test_input_fn = tf.estimator.inputs.numpy_input_fn(x={"x" : np.array(self.test_set.data)}, y=self.test_set.target, num_epochs=None, shuffle=False)
-        
+        print('Started testing')
+#         with tf.device('/gpu:0'):
+#             print('in test data creation')
+#             test_input_fn = tf.estimator.inputs.numpy_input_fn(x={"x" : np.array(self.test_set.data)}, y=self.test_set.target, num_epochs=None, shuffle=False)
+#         
         with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
-            accuracy_score = self.classifier.evaluate(input_fn=test_input_fn)['accuracy']
+            print('In session')
+#             accuracy_score = self.classifier.score(x={"x" : np.array(self.test_set.data)}, y=self.test_set.target, metrics={'accuracy' : accuracy})
+            accuracy_score = accuracy(self.classifier.predict(x={"x" : np.array(self.test_set.data)}), labels=self.test_set.target)
+            print('Done testing')
         
         print("Accuracy score: " + accuracy_score)
