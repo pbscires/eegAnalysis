@@ -1,7 +1,0 @@
-{
-    "SubjectNames" : ["chb12"],
-    "ConfigFile" : "..\\Configuration\\windows_laptop_config.json",
-    "SeizuresFile" : "..\\Configuration\\seizures.json",
-    "Features" : ["LineLength"],
-    "OutFilePath" : "D:\\Documents\\csv\\chb12"
-}
