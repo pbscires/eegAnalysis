@@ -99,8 +99,10 @@ ENV/
 
 # mypy
 .mypy_cache/
-
 # Eclipse project
+
 .project
+
 .pydevproject
+
 .settings/
