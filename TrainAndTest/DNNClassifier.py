@@ -17,7 +17,7 @@ class DNNClassifier(object):
     '''
 
 
-    def __init__(self, csv_path_train, csv_path_test):
+    def __init__(self, csv_path_train, csv_path_train_target, csv_path_test, csv_path_test_target):
         '''
         Constructor
         '''
@@ -26,18 +26,26 @@ class DNNClassifier(object):
             filename=csv_path_train,
             target_dtype=np.int,
             features_dtype=np.float32)
+        self.training_set_target = tf.contrib.learn.datasets.base.load_csv_with_header(
+            filename=csv_path_train_target,
+            features_dtype=np.int,
+            target_dtype=np.int)
         self.test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
                 filename=csv_path_test,
-                target_dtype=np.int,
-                features_dtype=np.float32)
+                features_dtype=np.float32,
+                target_dtype=np.int)
+        self.test_set_target = tf.contrib.learn.datasets.base.load_csv_with_header(
+            filename=csv_path_test_target,
+            features_dtype=np.int,
+            target_dtype=np.int)
         
         # Specify that all features have real-value data
-        feature_columns = [tf.contrib.layers.real_valued_column("", dimension=19)]
+        feature_columns = [tf.contrib.layers.real_valued_column("", dimension=184)]
         # Build 3 layer DNN with 10, 20, 10 units respectively.
         self.classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,
                                                     hidden_units=[10, 20, 10],
                                                     n_classes=2,
-                                                    model_dir="/Users/rsburugula/Documents/tmp/chb_for_tf/DNNClassifier_data")
+                                                    model_dir="DNNClassifier_Data")
 #         with tf.device('/gpu:0'):
 #             feature_columns = [tf.feature_column.numeric_column("x", shape=[21])]
 #             self.classifier = SKCompat(tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,
@@ -50,7 +58,7 @@ class DNNClassifier(object):
     # Define the training inputs
     def get_train_inputs(self):
         x = tf.constant(self.training_set.data)
-        y = tf.constant(self.training_set.target)
+        y = tf.constant(self.training_set_target.data)
     
         return x, y
 
@@ -84,7 +92,7 @@ class DNNClassifier(object):
         
     def get_test_inputs(self):
         x = tf.constant(self.test_set.data)
-        y = tf.constant(self.test_set.target)
+        y = tf.constant(self.test_set_target.data)
         
         return x, y
 

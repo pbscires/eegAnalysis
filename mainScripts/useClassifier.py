@@ -15,7 +15,7 @@ if __name__ == '__main__':
 #     knn_classifier.preprocess()
 #     knn_classifier.train_test()
     
-    dnn_classifier = DNNClassifier(sys.argv[1], sys.argv[2])
+    dnn_classifier = DNNClassifier(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
 #     dnn_classifier.create_arrays()
 #     dnn_classifier.preprocess()
     dnn_classifier.train()
