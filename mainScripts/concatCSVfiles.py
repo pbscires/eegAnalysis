@@ -6,7 +6,9 @@ import sys
 import os
 import re
 import numpy as np
+import subprocess
 from sklearn.cross_validation import train_test_split
+import shutil
 
 
 pgmName = sys.argv[0]
@@ -104,15 +106,15 @@ def trainTestSplit():
     global inDir
     global outDir
     global filesPerSubject
+    global numFeatures
+
     for subjectName in filesPerSubject.keys():
         Xy_train_path = os.path.join(outDir, '.'.join([subjectName, 'Xy_train', 'csv']))
         Xy_test_path = os.path.join(outDir, '.'.join([subjectName, 'Xy_test', 'csv']))
         y_train_path = os.path.join(outDir, '.'.join([subjectName, 'y_train', 'csv']))
         y_test_path = os.path.join(outDir, '.'.join([subjectName, 'y_test', 'csv']))
-        Xy_train_fHandle = open(Xy_train_path, 'w')
-        Xy_test_fHandle = open(Xy_test_path, 'w')
-        y_train_fHandle = open(y_train_path, 'w')
-        y_test_fHandle = open(y_test_path, 'w')
+        train_numRows = 0
+        test_numRows = 0
         for filename in filesPerSubject[subjectName]:
             filePath = os.path.join(inDir, filename)
             arr = np.genfromtxt(filePath, delimiter=',')
@@ -120,39 +122,75 @@ def trainTestSplit():
             y = arr[:,-1]
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
             print ("subjectName = ", subjectName, "filename=  ", filename, "filePath = ", filePath)
-            print ("X_train.shape = ", X_train.shape, "X_test.shape = ", X_test.shape,
-                   "y_train.shape = ", y_train.shape, "y_test.shape = ", y_test.shape)
+#             print ("X_train.shape = ", X_train.shape, "X_test.shape = ", X_test.shape,
+#                    "y_train.shape = ", y_train.shape, "y_test.shape = ", y_test.shape)
             
-#             y_temp = np.reshape(y_train, (-1, 1))
-#             print ("y_temp.shape = ", y_temp.shape)
+            train_numRows += X_train.shape[0]
+            test_numRows += X_test.shape[0]
+            
             Xy_train_arr = np.concatenate((X_train, np.reshape(y_train, (-1, 1))), axis=1)
             Xy_test_arr = np.concatenate((X_test, np.reshape(y_test, (-1, 1))), axis=1)
             y_train_arr = np.concatenate((y_train, y_train), axis=0)
             y_test_arr = np.concatenate((y_test, y_test), axis=0)
 
+            fmtStr = '%f,' * numFeatures
+            fmtStr = ''.join([fmtStr, '%d'])
+#             print ("fmtStr = ", fmtStr)
             # Write to the files
-            np.savetxt(Xy_train_fHandle, Xy_train_arr, delimiter=',')
-            np.savetxt(Xy_test_fHandle, Xy_test_arr, delimiter=',')
-            np.savetxt(y_train_fHandle, y_train_arr, delimiter=',')
-            np.savetxt(y_test_fHandle, y_test_arr, delimiter=',')
-#             for i in range(X_train.shape[0]):
-#                 strToWrite = ','.join([','.join(str(X_train[i])), str(y_train[i])])
-#                 Xy_train_fHandle.write(strToWrite)
-#                 Xy_train_fHandle.write('\n')
-#                 strToWrite = ','.join([X_test[i], y_test[i]])
-#                 Xy_test_fHandle.write(strToWrite)
-#                 Xy_test_fHandle.write('\n')
-#                 strToWrite = ','.join([y_train[i], y_train[i]])
-#                 y_train_fHandle.write(strToWrite)
-#                 y_train_fHandle.write('\n')
-#                 strToWrite = ','.join([y_test[i], y_test[i]])
-#                 y_test_fHandle.write(strToWrite)
-#                 y_test_fHandle.write('\n')
-        Xy_train_fHandle.close()
-        Xy_test_fHandle.close()
-        y_train_fHandle.close()
-        y_test_fHandle.close()
-
+            cur_Xy_train_path = os.path.join(outDir, '.'.join([filename, 'Xy_train', 'csv']))
+            cur_Xy_test_path = os.path.join(outDir, '.'.join([filename, 'Xy_test', 'csv']))
+            cur_y_train_path = os.path.join(outDir, '.'.join([filename, 'y_train', 'csv']))
+            cur_y_test_path = os.path.join(outDir, '.'.join([filename, 'y_test', 'csv']))
+            np.savetxt(cur_Xy_train_path, Xy_train_arr, fmt=fmtStr, delimiter=',')
+            np.savetxt(cur_Xy_test_path, Xy_test_arr, fmt=fmtStr, delimiter=',')
+            np.savetxt(cur_y_train_path, y_train_arr, fmt='%d', delimiter=',')
+            np.savetxt(cur_y_test_path, y_test_arr, fmt='%d', delimiter=',')
+            
+        print('train_numRows = ', train_numRows, ', test_numRows = ', test_numRows)
+        strToWrite = ','.join([str(train_numRows), str(numFeatures), 'no_seizure', 'seizure'])
+        fd1 = open(Xy_train_path, 'w')
+        fd1.write(strToWrite)
+        fd1.write('\n')
+#             fd1.close()
+        strToWrite = ','.join([str(test_numRows), str(numFeatures), 'no_seizure', 'seizure'])
+        fd2 = open(Xy_test_path, 'w')
+        fd2.write(strToWrite)
+        fd2.write('\n')
+#             fd2.close()
+        strToWrite = ','.join([str(train_numRows), '1', 'no_seizure', 'seizure'])
+        fd3 = open(y_train_path, 'w')
+        fd3.write(strToWrite)
+        fd3.write('\n')
+#             fd3.close()
+        strToWrite = ','.join([str(test_numRows), '1', 'no_seizure', 'seizure'])
+        fd4 = open(y_test_path, 'w')
+        fd4.write(strToWrite)
+        fd4.write('\n')
+#             fd4.close()
+        for filename in filesPerSubject[subjectName]:
+            cur_Xy_train_path = os.path.join(outDir, '.'.join([filename, 'Xy_train', 'csv']))
+            cur_Xy_test_path = os.path.join(outDir, '.'.join([filename, 'Xy_test', 'csv']))
+            cur_y_train_path = os.path.join(outDir, '.'.join([filename, 'y_train', 'csv']))
+            cur_y_test_path = os.path.join(outDir, '.'.join([filename, 'y_test', 'csv']))
+            print ("cur_Xy_train_path = ", cur_Xy_train_path)
+            with open(cur_Xy_train_path, 'r') as rfd1:
+                shutil.copyfileobj(rfd1, fd1)
+            with open(cur_Xy_test_path, 'r') as rfd2:
+                shutil.copyfileobj(rfd2, fd2)
+            with open(cur_y_train_path, 'r') as rfd3:
+                shutil.copyfileobj(rfd3, fd3)
+            with open(cur_y_test_path, 'r') as rfd4:
+                shutil.copyfileobj(rfd4, fd4)
+            # Remove the intermediate files
+            os.remove(cur_Xy_train_path)
+            os.remove(cur_Xy_test_path)
+            os.remove(cur_y_train_path)
+            os.remove(cur_y_test_path)
+        fd1.close()
+        fd2.close()
+        fd3.close()
+        fd4.close()
+            
     return
 
 if __name__ == '__main__':
@@ -172,5 +210,6 @@ if __name__ == '__main__':
     determinePerSubjectFiles()
     # 1. Make sure all the csv files have same number of columns
     verifyCSVFiles()
+#     exit(0)
     # 2. Create train-test rows
     trainTestSplit()
