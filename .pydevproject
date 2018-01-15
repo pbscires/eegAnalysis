@@ -6,6 +6,5 @@
 <path>/${PROJECT_DIR_NAME}/TrainAndTest</path>
 <path>/${PROJECT_DIR_NAME}/DataRepresentation</path>
 <path>/${PROJECT_DIR_NAME}/Features</path>
-<path>/${PROJECT_DIR_NAME}/util</path>
 </pydev_pathproperty>
 </pydev_project>
