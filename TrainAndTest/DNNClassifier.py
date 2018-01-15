@@ -4,6 +4,7 @@ Created on Dec 31, 2017
 @author: pb8xe
 '''
 import numpy as np
+import collections
 from sklearn.cross_validation import train_test_split
 from sklearn.preprocessing.data import StandardScaler
 import tensorflow as tf
@@ -17,27 +18,29 @@ class DNNClassifier(object):
     '''
 
 
-    def __init__(self, csv_path_train, csv_path_train_target, csv_path_test, csv_path_test_target):
+    def __init__(self, csv_path_train, csv_path_test):
         '''
         Constructor
         '''
-        self.csv_path = csv_path_train
-        self.training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
-            filename=csv_path_train,
-            target_dtype=np.int,
-            features_dtype=np.float32)
-        self.training_set_target = tf.contrib.learn.datasets.base.load_csv_with_header(
-            filename=csv_path_train_target,
-            features_dtype=np.int,
-            target_dtype=np.int)
-        self.test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
-                filename=csv_path_test,
-                features_dtype=np.float32,
-                target_dtype=np.int)
-        self.test_set_target = tf.contrib.learn.datasets.base.load_csv_with_header(
-            filename=csv_path_test_target,
-            features_dtype=np.int,
-            target_dtype=np.int)
+        self.csv_path_train = csv_path_train
+        self.csv_path_test = csv_path_test
+        self.Dataset = collections.namedtuple('Dataset', ['data', 'target'])
+#         self.training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
+#             filename=csv_path_train,
+#             target_dtype=np.int,
+#             features_dtype=np.float32)
+#         self.training_set_target = tf.contrib.learn.datasets.base.load_csv_with_header(
+#             filename=csv_path_train_target,
+#             features_dtype=np.int,
+#             target_dtype=np.int)
+#         self.test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
+#                 filename=csv_path_test,
+#                 features_dtype=np.float32,
+#                 target_dtype=np.int)
+#         self.test_set_target = tf.contrib.learn.datasets.base.load_csv_with_header(
+#             filename=csv_path_test_target,
+#             features_dtype=np.int,
+#             target_dtype=np.int)
         
         # Specify that all features have real-value data
         feature_columns = [tf.contrib.layers.real_valued_column("", dimension=184)]
@@ -57,27 +60,38 @@ class DNNClassifier(object):
 
     # Define the training inputs
     def get_train_inputs(self):
-        x = tf.constant(self.training_set.data)
-        y = tf.constant(self.training_set_target.data)
+        x = tf.constant(self.train_dataset.data)
+        y = tf.constant(self.train_dataset.target)
     
         return x, y
 
     def create_arrays(self):
-        arr = np.genfromtxt(self.csv_path, delimiter=',')
-        print(arr.shape)
-        self.X = np.delete(arr, [arr.shape[1]-1], axis=1)
-        print(self.X.shape)
-        self.y = np.delete(arr, list(range(arr.shape[1]-1)), axis=1)
-        print(self.y.shape)
+        arr_train = np.genfromtxt(self.csv_path_train, delimiter=',', skip_header=1)
+        print(arr_train.shape)
+        self.X_train = np.delete(arr_train, [arr_train.shape[1]-1], axis=1)
+        print(self.X_train.shape)
+        self.y_train = np.delete(arr_train, list(range(arr_train.shape[1]-1)), axis=1)
+        print(self.y_train.shape)
+        
+        arr_test = np.genfromtxt(self.csv_path_test, delimiter=',', skip_header=1)
+        print(arr_test.shape)
+        self.X_test = np.delete(arr_test, [arr_test.shape[1]-1], axis=1)
+        print(self.X_test.shape)
+        self.y_test = np.delete(arr_test, list(range(arr_test.shape[1]-1)), axis=1)
+        print(self.y_test.shape)
     
     def preprocess(self):
-        X_train, X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3, random_state=0)
+#         X_train, X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3, random_state=0)
         sc = StandardScaler()
-        sc.fit(X_train)
-        self.X_train_std = sc.transform(X_train)
-        self.X_test_std = sc.transform(X_test)
+        sc.fit(self.X_train)
+        X_train_std = sc.transform(self.X_train)
+        X_test_std = sc.transform(self.X_test)
+        self.train_dataset = self.Dataset(data=X_train_std, target=self.y_train)
+        self.test_dataset = self.Dataset(data=X_test_std, target=self.y_test)
     
     def train(self):
+        self.create_arrays()
+        self.preprocess()
         timer = ElapsedTime()
         timer.reset()
         print('Started training')
@@ -91,8 +105,8 @@ class DNNClassifier(object):
         print('Ended in: ', timer.timeDiff())
         
     def get_test_inputs(self):
-        x = tf.constant(self.test_set.data)
-        y = tf.constant(self.test_set_target.data)
+        x = tf.constant(self.test_dataset.data)
+        y = tf.constant(self.test_dataset.target)
         
         return x, y
 
