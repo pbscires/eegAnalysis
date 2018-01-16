@@ -110,11 +110,15 @@ class DNNClassifier(object):
                 ax.text(x=j, y=i, s=confmat[i,j], va='center', ha='center')
         plt.xlabel('predicted label')
         plt.ylabel('true label')
-        plt.savefig("D:\\Documents\\DNN2\\LineLength\\chb"+patient_num+"_confmat.png")
+        plt.savefig("D:\\Documents\\DNN\\LineLength\\chb"+patient_num+"_confmat.png")
         plt.close()
         fpr, tpr, thresholds = roc_curve(self.y_test, y_pred)
-        total_fpr+=fpr
-        total_tpr+=tpr
+        print("fpr", fpr)
+        print("tpr", tpr)
+        total_fpr[1]+=fpr[len(fpr)-2]
+        total_tpr[1]+=tpr[len(tpr)-2]
+        print(total_fpr)
+        print(total_tpr)
         roc_auc = auc(fpr, tpr)
         plt.title('ROC Curve')
         plt.plot(fpr, tpr, 'b', label='AUC = %.2F' % roc_auc)
@@ -124,6 +128,6 @@ class DNNClassifier(object):
         plt.ylim([-0.1, 1.2])
         plt.ylabel('True Positive Rate')
         plt.xlabel('False Positive Rate')
-        plt.savefig("D:\\Documents\\DNN2\\LineLength\\chb"+patient_num+"roc.png")
+        plt.savefig("D:\\Documents\\DNN\\LineLength\\chb"+patient_num+"roc.png")
         plt.close()
         return total_fpr, total_tpr
