@@ -11,6 +11,8 @@ import tensorflow as tf
 from util.ElapsedTime import ElapsedTime
 from tensorflow.contrib.learn.python.learn.estimators.estimator import SKCompat
 from tensorflow.contrib.metrics.python.metrics.classification import accuracy
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, roc_curve, auc
+import matplotlib.pyplot as plt
 
 class DNNClassifier(object):
     '''
@@ -25,22 +27,6 @@ class DNNClassifier(object):
         self.csv_path_train = csv_path_train
         self.csv_path_test = csv_path_test
         self.Dataset = collections.namedtuple('Dataset', ['data', 'target'])
-#         self.training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
-#             filename=csv_path_train,
-#             target_dtype=np.int,
-#             features_dtype=np.float32)
-#         self.training_set_target = tf.contrib.learn.datasets.base.load_csv_with_header(
-#             filename=csv_path_train_target,
-#             features_dtype=np.int,
-#             target_dtype=np.int)
-#         self.test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
-#                 filename=csv_path_test,
-#                 features_dtype=np.float32,
-#                 target_dtype=np.int)
-#         self.test_set_target = tf.contrib.learn.datasets.base.load_csv_with_header(
-#             filename=csv_path_test_target,
-#             features_dtype=np.int,
-#             target_dtype=np.int)
         
         # Specify that all features have real-value data
         feature_columns = [tf.contrib.layers.real_valued_column("", dimension=184)]
@@ -49,12 +35,6 @@ class DNNClassifier(object):
                                                     hidden_units=[10, 20, 10],
                                                     n_classes=2,
                                                     model_dir="DNNClassifier_Data")
-#         with tf.device('/gpu:0'):
-#             feature_columns = [tf.feature_column.numeric_column("x", shape=[21])]
-#             self.classifier = SKCompat(tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,
-#                                                 hidden_units=[100,10],
-#                                                 n_classes=2,
-#                                                 model_dir="DNNClassifier_data"))
             
         print('Initialized')
 
@@ -81,7 +61,6 @@ class DNNClassifier(object):
         print(self.y_test.shape)
     
     def preprocess(self):
-#         X_train, X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3, random_state=0)
         sc = StandardScaler()
         sc.fit(self.X_train)
         X_train_std = sc.transform(self.X_train)
@@ -95,11 +74,7 @@ class DNNClassifier(object):
         timer = ElapsedTime()
         timer.reset()
         print('Started training')
-#         with tf.device('/gpu:0'):
-#             train_input_fn = tf.estimator.inputs.numpy_input_fn(x={"x" : np.array(self.training_set.data)}, y=self.training_set.target, num_epochs=None, shuffle=False)
-#         
-#         with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
-#             self.classifier.fit(x={"x" : np.array(self.training_set.data)}, y=self.training_set.target, steps=1)
+
 # Fit model.
         self.classifier.fit(input_fn=self.get_train_inputs, steps=2000)
         print('Ended in: ', timer.timeDiff())
@@ -110,19 +85,35 @@ class DNNClassifier(object):
         
         return x, y
 
+    def get_test_inputs_only(self):
+        return tf.constant(self.test_dataset.data)
+    
     def test(self):
         print('Started testing')
-#         with tf.device('/gpu:0'):
-#             print('in test data creation')
-#             test_input_fn = tf.estimator.inputs.numpy_input_fn(x={"x" : np.array(self.test_set.data)}, y=self.test_set.target, num_epochs=None, shuffle=False)
-#         
-#         with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
-#             print('In session')
-# #             accuracy_score = self.classifier.score(x={"x" : np.array(self.test_set.data)}, y=self.test_set.target, metrics={'accuracy' : accuracy})
-#             accuracy_score = accuracy(self.classifier.predict(x={"x" : np.array(self.test_set.data)}), labels=self.test_set.target)
-#             print('Done testing')
-#           # Define the test inputs
-        # Evaluate accuracy.
-        accuracy_score = self.classifier.evaluate(input_fn=self.get_test_inputs,
-                                             steps=1)["accuracy"]
-        print("Accuracy score: ", accuracy_score)
+
+        score = list(self.classifier.predict_classes(input_fn=self.get_test_inputs_only))
+        y_pred = np.array(score).astype(int)
+    
+        print("Accuracy: %.2f" % accuracy_score(self.y_test, y_pred))
+        print("Precision: %.2f" % precision_score(self.y_test, y_pred))
+        print("Recall: %.2f" % recall_score(self.y_test, y_pred))
+        confmat = confusion_matrix(self.y_test, y_pred)
+        fig, ax = plt.subplots(figsize=(2.5, 2.5))
+        ax.matshow(confmat, cmap=plt.cm.Blues, alpha=0.3)
+        for i in range(confmat.shape[0]):
+            for j in range(confmat.shape[1]):
+                ax.text(x=j, y=i, s=confmat[i,j], va='center', ha='center')
+        plt.xlabel('predicted label')
+        plt.ylabel('true label')
+        plt.show()
+        fpr, tpr, thresholds = roc_curve(self.y_test, y_pred)
+        roc_auc = auc(fpr, tpr)
+        plt.title('ROC Curve')
+        plt.plot(fpr, tpr, 'b', label='AUC = %.2F' % roc_auc)
+        plt.legend(loc='lower right')
+        plt.plot([0,1], [0,1], 'r--')
+        plt.xlim([-0.1, 1.2])
+        plt.ylim([-0.1, 1.2])
+        plt.ylabel('True Positive Rate')
+        plt.xlabel('False Positive Rate')
+        plt.show()
