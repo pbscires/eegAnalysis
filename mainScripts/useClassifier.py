@@ -11,8 +11,8 @@ from TrainAndTest.SVMClassifier import SVMClassifier
 from sklearn.metrics import auc
 import matplotlib.pyplot as plt
 if __name__ == '__main__':
-    root="D:\\Documents\\ReadyForTensorFlow\\LineLength\\chb"
-    f = open('D:\\Documents\\results.csv', 'w')
+    root="D:\\Documents\\ReadyForTensorFlow\\FFT\\chb"
+    f = open('D:\\Documents\\resultsFFT.csv', 'w')
     total_fpr_knn=[0.0, 0.0, 1.0]
     total_tpr_knn=[0.0, 0.0, 1.0]
     
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     plt.ylim([-0.1, 1.2])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.savefig("D:\\Documents\\KNN\\avgroc.png")
+    plt.savefig("D:\\Documents\\KNN\\FFT\\avgroc.png")
     plt.close()
     
     roc_auc_svm = auc(total_fpr_svm, total_tpr_svm)
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     plt.ylim([-0.1, 1.2])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.savefig("D:\\Documents\\SVM\\avgroc.png")
+    plt.savefig("D:\\Documents\\SVM\\FFT\\avgroc.png")
     plt.close()
     
     roc_auc_dnn = auc(total_fpr_dnn, total_tpr_dnn)
@@ -103,5 +103,5 @@ if __name__ == '__main__':
     plt.ylim([-0.1, 1.2])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.savefig("D:\\Documents\\DNN\\avgroc.png")
+    plt.savefig("D:\\Documents\\DNN\\FFT\\avgroc.png")
     plt.close()
