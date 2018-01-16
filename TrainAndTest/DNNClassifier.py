@@ -65,8 +65,8 @@ class DNNClassifier(object):
         sc.fit(self.X_train)
         X_train_std = sc.transform(self.X_train)
         X_test_std = sc.transform(self.X_test)
-        self.train_dataset = self.Dataset(data=X_train_std, target=self.y_train)
-        self.test_dataset = self.Dataset(data=X_test_std, target=self.y_test)
+        self.train_dataset = self.Dataset(data=self.X_train, target=self.y_train)
+        self.test_dataset = self.Dataset(data=self.X_test, target=self.y_test)
     
     def train(self):
         self.create_arrays()
@@ -88,15 +88,20 @@ class DNNClassifier(object):
     def get_test_inputs_only(self):
         return tf.constant(self.test_dataset.data)
     
-    def test(self):
+    def test(self, f, patient_num, total_fpr, total_tpr):
         print('Started testing')
 
         score = list(self.classifier.predict_classes(input_fn=self.get_test_inputs_only))
         y_pred = np.array(score).astype(int)
-    
-        print("Accuracy: %.2f" % accuracy_score(self.y_test, y_pred))
-        print("Precision: %.2f" % precision_score(self.y_test, y_pred))
-        print("Recall: %.2f" % recall_score(self.y_test, y_pred))
+        accuracy = accuracy_score(self.y_test, y_pred)
+        precision = accuracy_score(self.y_test, y_pred)
+        recall = recall_score(self.y_test, y_pred)
+        print("Accuracy: %.2f" % accuracy)
+        print("Precision: %.2f" % precision)
+        print("Recall: %.2f" % recall)
+        line = str(accuracy)+","+str(precision)+","+str(recall)
+        f.write(line)
+        f.write("\n")
         confmat = confusion_matrix(self.y_test, y_pred)
         fig, ax = plt.subplots(figsize=(2.5, 2.5))
         ax.matshow(confmat, cmap=plt.cm.Blues, alpha=0.3)
@@ -105,8 +110,11 @@ class DNNClassifier(object):
                 ax.text(x=j, y=i, s=confmat[i,j], va='center', ha='center')
         plt.xlabel('predicted label')
         plt.ylabel('true label')
-        plt.show()
+        plt.savefig("D:\\Documents\\DNN2\\LineLength\\chb"+patient_num+"_confmat.png")
+        plt.close()
         fpr, tpr, thresholds = roc_curve(self.y_test, y_pred)
+        total_fpr+=fpr
+        total_tpr+=tpr
         roc_auc = auc(fpr, tpr)
         plt.title('ROC Curve')
         plt.plot(fpr, tpr, 'b', label='AUC = %.2F' % roc_auc)
@@ -116,4 +124,6 @@ class DNNClassifier(object):
         plt.ylim([-0.1, 1.2])
         plt.ylabel('True Positive Rate')
         plt.xlabel('False Positive Rate')
-        plt.show()
+        plt.savefig("D:\\Documents\\DNN2\\LineLength\\chb"+patient_num+"roc.png")
+        plt.close()
+        return total_fpr, total_tpr

@@ -47,11 +47,17 @@ class KNNClassifier():
         self.preprocess()
         self.classifier.fit(self.X_train_std, self.y_train.ravel())
     
-    def test(self):
-        y_pred = self.classifier.predict(self.X_test_std)
-        print('Accuracy: %.2f' % accuracy_score(self.y_test, y_pred))
-        print("Precision: %.2f" % precision_score(self.y_test, y_pred))
-        print("Recall: %.2f" % recall_score(self.y_test, y_pred))
+    def test(self, f, patient_num, total_fpr, total_tpr):
+        y_pred = self.classifier.predict(self.X_test)
+        accuracy = accuracy_score(self.y_test, y_pred)
+        precision = accuracy_score(self.y_test, y_pred)
+        recall = recall_score(self.y_test, y_pred)
+        print("Accuracy: %.2f" % accuracy)
+        print("Precision: %.2f" % precision)
+        print("Recall: %.2f" % recall)
+        line = str(accuracy)+","+str(precision)+","+str(recall)
+        f.write(line)
+        f.write("\n")
         confmat = confusion_matrix(self.y_test, y_pred)
         fig, ax = plt.subplots(figsize=(2.5, 2.5))
         ax.matshow(confmat, cmap=plt.cm.Blues, alpha=0.3)
@@ -60,8 +66,11 @@ class KNNClassifier():
                 ax.text(x=j, y=i, s=confmat[i,j], va='center', ha='center')
         plt.xlabel('predicted label')
         plt.ylabel('true label')
-        plt.show()
+        plt.savefig("D:\\Documents\\KNN2\\LineLength\\chb"+patient_num+"_confmat.png")
+        plt.close()
         fpr, tpr, threshholds = roc_curve(self.y_test, y_pred)
+        total_fpr+=fpr
+        total_tpr+=tpr
         roc_auc = auc(fpr, tpr)
         plt.title('ROC Curve')
         plt.plot(fpr, tpr, 'b', label='AUC = %.2F' % roc_auc)
@@ -71,4 +80,6 @@ class KNNClassifier():
         plt.ylim([-0.1, 1.2])
         plt.ylabel('True Positive Rate')
         plt.xlabel('False Positive Rate')
-        plt.show()
+        plt.savefig("D:\\Documents\\KNN2\\LineLength\\chb"+patient_num+"roc.png")
+        plt.close()
+        return total_fpr, total_tpr
