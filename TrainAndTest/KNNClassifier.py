@@ -48,7 +48,7 @@ class KNNClassifier():
         self.classifier.fit(self.X_train_std, self.y_train.ravel())
     
     def test(self, f, patient_num, total_fpr, total_tpr):
-        y_pred = self.classifier.predict(self.X_test)
+        y_pred = self.classifier.predict(self.X_test_std)
         accuracy = accuracy_score(self.y_test, y_pred)
         precision = accuracy_score(self.y_test, y_pred)
         recall = recall_score(self.y_test, y_pred)
@@ -68,7 +68,7 @@ class KNNClassifier():
         plt.ylabel('true label')
         plt.savefig("D:\\Documents\\KNN\\FFT\\chb"+patient_num+"_confmat.png")
         plt.close()
-        fpr, tpr, threshholds = roc_curve(self.y_test, y_pred)
+        fpr, tpr, thresholds = roc_curve(self.y_test, y_pred)
         print("fpr", fpr)
         print("tpr", tpr)
         total_fpr[1]+=fpr[len(fpr)-2]

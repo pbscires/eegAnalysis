@@ -30,6 +30,8 @@ if __name__ == '__main__':
             num_string=str(num)
         train_path = root + num_string + ".Xy_train.csv"
         test_path = root + num_string + ".Xy_test.csv"
+        
+        print("Currently on chb"+num_string)
          
         knn_classifier = KNNClassifier(train_path, test_path, k=5)
         knn_classifier.train()
@@ -49,6 +51,8 @@ if __name__ == '__main__':
         train_path = root + num_string + ".Xy_train.csv"
         test_path = root + num_string + ".Xy_test.csv"
         
+        print("Currently on chb"+num_string)
+        
         knn_classifier = KNNClassifier(train_path, test_path, k=5)
         knn_classifier.train()
         total_fpr_knn, total_tpr_knn = knn_classifier.test(f, num_string, total_fpr_knn, total_tpr_knn)
@@ -63,12 +67,12 @@ if __name__ == '__main__':
     
     f.close()
     
-    total_fpr_dnn[1]/=23
-    total_fpr_knn[1]/=23
-    total_fpr_svm[1]/=23
-    total_tpr_dnn[1]/=23
-    total_tpr_knn[1]/=23
-    total_tpr_svm[1]/=23
+    total_fpr_dnn[1]/=22
+    total_fpr_knn[1]/=22
+    total_fpr_svm[1]/=22
+    total_tpr_dnn[1]/=22
+    total_tpr_knn[1]/=22
+    total_tpr_svm[1]/=22
     
     roc_auc_knn = auc(total_fpr_knn, total_tpr_knn)
     plt.title('KNN Avg ROC Curve')

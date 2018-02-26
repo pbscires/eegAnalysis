@@ -65,8 +65,8 @@ class DNNClassifier(object):
         sc.fit(self.X_train)
         X_train_std = sc.transform(self.X_train)
         X_test_std = sc.transform(self.X_test)
-        self.train_dataset = self.Dataset(data=self.X_train, target=self.y_train)
-        self.test_dataset = self.Dataset(data=self.X_test, target=self.y_test)
+        self.train_dataset = self.Dataset(data=X_train_std, target=self.y_train)
+        self.test_dataset = self.Dataset(data=X_test_std, target=self.y_test)
     
     def train(self):
         self.create_arrays()
