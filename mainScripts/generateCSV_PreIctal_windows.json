@@ -1,5 +1,5 @@
 {
-    "CSVInDir" : "D:\\Documents\\csv_ll",
+    "CSVInDir" : "D:\\Documents\\csv_fft",
     "CSVInDir_LineLength" : "D:\\Documents\\csv_ll",
     "CSVInDir_FFT" : "D:\\Documents\\csv_fft",
     "SummaryDir" : "/Users/rsburugula/Documents/Etc/Pranav/YHS/ScienceResearch/Data/all_summaries",
@@ -40,7 +40,7 @@
         "chb24" : [".*chb24_.*.edf.csv$"]
     },
     "OutDir" : "D:\\Documents\\csv_combined",
-    "numFeatures" : 19,
+    "numFeatures" : 168,
     "numFeatures_LineLength" : 19,
     "numFeatures_FFT" : 168,
     "Comment" : "The following 3 values are in the units of seconds",

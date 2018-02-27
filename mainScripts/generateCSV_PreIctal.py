@@ -205,7 +205,27 @@ def shiftResultsForPreIctal(subjectName, preIctalSeconds,  slidingWindowLen):
         fmtStr = ''.join([fmtStr, '%d'])
         np.savetxt(concatFilePathNew, new_arr, fmt=fmtStr, delimiter=',')
 
-
+def generateMultipleClasses(subjectName, preIctalSeconds, slidingWindowLen):
+    global outDir
+    print ("generateMultipleClasses(): subjectName = ", subjectName,
+           "preIctalSeconds = ", preIctalSeconds, "slidingWindowLen = ", slidingWindowLen)
+    concatFilePathOld = os.path.join(outDir, '.'.join([subjectName, 'csv']))
+    arr = np.genfromtxt(concatFilePathOld, delimiter=',')
+    X = arr[:,:-1]
+    y = arr[:,-1]
+    
+    preIctalOffsets = [int(preIctalSeconds[i]/slidingWindowLen) for i in range(len(preIctalSeconds))]
+    y_new = np.zeros(len(y))
+    for i in range(len(y)):
+        for j in range(len(preIctalOffsets)):
+            if(i+preIctalOffsets[j]<len(y)):
+                if(y[i+preIctalOffsets[j]]):
+                    y_new[i] = j+1
+    new_arr = np.concatenate((X, np.reshape(y_new, (-1, 1))), axis=1)
+    print ('Shape of the arrays: X={}, y_new={}, arr={}, new_arr={}'.format(X.shape, y_new.shape, arr.shape, new_arr.shape))
+    fmtStr = '%f,' * numFeatures
+    fmtStr = ''.join([fmtStr, '%d'])
+    np.savetxt(concatFilePathOld, new_arr, fmt=fmtStr, delimiter=',')
 
 if __name__ == '__main__':
     global subjectNames
@@ -233,6 +253,6 @@ if __name__ == '__main__':
         print ("Concatenating the per-subject files...")
         concatPerSubjectFiles(subject)
         print ("...done")
-        print ("Shifting the results for Pre-ictal analysis...")
-        shiftResultsForPreIctal(subject, preictalSeconds, slidingWindowLen)
+        print ("Generating the combined results for Pre-ictal analysis...")
+        generateMultipleClasses(subject, preictalSeconds, slidingWindowLen)
         print ("...done")
