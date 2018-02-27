@@ -28,8 +28,12 @@ if __name__ == '__main__':
             num_string="0" + str(num)
         else:
             num_string=str(num)
-        train_path = root + num_string + ".csv"
-        test_path = root + num_string + ".csv"
+        filepath = root + num_string + ".csv"
+        
+        arr = np.genfromtxt(filepath, delimiter=',')
+        X = np.delete(arr, [arr.shape[1]-1], axis=1)
+        y = np.delete(arr, list(range(arr.shape[1]-1)), axis=1)
+        
         
         print("Currently on chb"+num_string)
          
