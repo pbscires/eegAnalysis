@@ -215,12 +215,12 @@ def generateMultipleClasses(subjectName, preIctalSeconds, slidingWindowLen):
     y = arr[:,-1]
     
     preIctalOffsets = [int(preIctalSeconds[i]/slidingWindowLen) for i in range(len(preIctalSeconds))]
-    y_new = np.zeros(len(y))
+    y_new = np.copy(y)
     for i in range(len(y)):
         for j in range(len(preIctalOffsets)):
             if(i+preIctalOffsets[j]<len(y)):
                 if(y[i+preIctalOffsets[j]]):
-                    y_new[i] = j+1
+                    y_new[i] = j+2
     new_arr = np.concatenate((X, np.reshape(y_new, (-1, 1))), axis=1)
     print ('Shape of the arrays: X={}, y_new={}, arr={}, new_arr={}'.format(X.shape, y_new.shape, arr.shape, new_arr.shape))
     fmtStr = '%f,' * numFeatures
