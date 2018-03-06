@@ -38,7 +38,7 @@ class DNNClassifier(object):
         # Build 3 layer DNN with 10, 20, 10 units respectively.
         self.classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,
                                                     hidden_units=[10, 20, 10],
-                                                    n_classes=8,
+                                                    n_classes=2,
                                                     model_dir="DNNClassifier_Data")
             
         print('Initialized')
@@ -81,7 +81,7 @@ class DNNClassifier(object):
 
 # Fit model.
 #         self.classifier.fit(input_fn=self.get_train_inputs, steps=2000)
-        self.classifier.fit(input_fn=self.get_train_inputs, steps=1000)
+        self.classifier.fit(input_fn=self.get_train_inputs, steps=2000)
         print('Ended in: ', timer.timeDiff())
         
     def get_test_inputs(self):
@@ -109,6 +109,9 @@ class DNNClassifier(object):
         line = str(accuracy)+","+str(precision)+","+str(recall)+","+str(f1)+","
         f.write(line)
         confmat = confusion_matrix(self.y_test, y_pred)
+        for i in range(0,2):
+            for j in range(0,2):
+                total_confmat[i,j]+=confmat[i,j]
         fig, ax = plt.subplots(figsize=(2.5, 2.5))
         ax.matshow(confmat, cmap=plt.cm.Blues, alpha=0.3)
         for i in range(confmat.shape[0]):
@@ -118,8 +121,17 @@ class DNNClassifier(object):
         plt.ylabel('true label')
         plt.savefig("D:\\Documents\\DNN3\\LL\\chb"+patient_num+"_confmat.png")
         plt.close()
-        total_confmat.append(confmat)
         fpr, tpr, thresholds = roc_curve(self.y_test, y_pred)
+        for i in range(len(fpr)):
+            if fpr[i]*1==0:
+                fpr[i]=0.0
+            elif fpr[i]*1==1:
+                fpr[i]=1.0
+        for i in range(len(tpr)):
+            if tpr[i]*1==0:
+                tpr[i]=0.0
+            elif tpr[i]*1==1:
+                tpr[i]=1.0
         print("fpr", fpr)
         print("tpr", tpr)
         for coor in fpr:

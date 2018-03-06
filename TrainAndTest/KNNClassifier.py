@@ -62,6 +62,9 @@ class KNNClassifier():
         line = str(accuracy)+","+str(precision)+","+str(recall)+","+str(f1)+","
         f.write(line)
         confmat = confusion_matrix(self.y_test, y_pred)
+        for i in range(0,2):
+            for j in range(0,2):
+                total_confmat[i,j]+=confmat[i,j]
         fig, ax = plt.subplots(figsize=(2.5, 2.5))
         ax.matshow(confmat, cmap=plt.cm.Blues, alpha=0.3)
         for i in range(confmat.shape[0]):
@@ -71,12 +74,19 @@ class KNNClassifier():
         plt.ylabel('true label')
         plt.savefig("D:\\Documents\\KNN3\\LL\\chb"+patient_num+"_confmat.png")
         plt.close()
-        total_confmat.append(confmat)
         fpr, tpr, thresholds = roc_curve(self.y_test, y_pred)
+        for i in range(len(fpr)):
+            if fpr[i]*1==0:
+                fpr[i]=0.0
+            elif fpr[i]*1==1:
+                fpr[i]=1.0
+        for i in range(len(tpr)):
+            if tpr[i]*1==0:
+                tpr[i]=0.0
+            elif tpr[i]*1==1:
+                tpr[i]=1.0
         print("fpr", fpr)
         print("tpr", tpr)
-        total_fpr[1]+=fpr[len(fpr)-2]
-        total_tpr[1]+=tpr[len(tpr)-2]
         print(total_fpr)
         print(total_tpr)
         for coor in fpr:

@@ -29,7 +29,7 @@ class SVMClassifier(object):
         self.X_test = X_test
         self.y_train = y_train
         self.y_test = y_test
-        self.classifier = SVC(kernel='rbf', random_state=0, gamma=.1, C=0.1)
+        self.classifier = SVC(random_state=0, gamma=.1, C=0.1)
     
     def create_arrays(self):
         arr_train = np.genfromtxt(self.csv_path_train, delimiter=',', skip_header=1)
@@ -70,6 +70,9 @@ class SVMClassifier(object):
         f.write(line)
         f.write("\n")
         confmat = confusion_matrix(self.y_test, y_pred)
+        for i in range(0,2):
+            for j in range(0,2):
+                total_confmat[i,j]+=confmat[i,j]
         fig, ax = plt.subplots(figsize=(2.5, 2.5))
         ax.matshow(confmat, cmap=plt.cm.Blues, alpha=0.3)
         for i in range(confmat.shape[0]):
@@ -79,8 +82,17 @@ class SVMClassifier(object):
         plt.ylabel('true label')
         plt.savefig("D:\\Documents\\SVM3\\LL\\chb"+patient_num+"_confmat.png")
         plt.close()
-        total_confmat.append(confmat)
         fpr, tpr, thresholds = roc_curve(self.y_test, y_pred)
+        for i in range(len(fpr)):
+            if fpr[i]*1==0:
+                fpr[i]=0.0
+            elif fpr[i]*1==1:
+                fpr[i]=1.0
+        for i in range(len(tpr)):
+            if tpr[i]*1==0:
+                tpr[i]=0.0
+            elif tpr[i]*1==1:
+                tpr[i]=1.0
         print("fpr", fpr)
         print("tpr", tpr)
         for coor in fpr:
