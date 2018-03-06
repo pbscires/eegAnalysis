@@ -13,25 +13,33 @@ from TrainAndTest.DNNClassifier import DNNClassifier
 from TrainAndTest.SVMClassifier import SVMClassifier
 from sklearn.metrics import auc
 import matplotlib.pyplot as plt
+from sklearn.metrics.ranking import roc_auc_score
+from scipy.interpolate.fitpack2 import UnivariateSpline
 if __name__ == '__main__':
     root="D:\\Documents\\csv_combined_ll\chb"
     f = open('D:\\Documents\\multiple\\resultsLL.csv', 'w')
-    total_fpr_knn=[0.0, 0.0, 1.0]
-    total_tpr_knn=[0.0, 0.0, 1.0]
+    total_fpr_knn=[]
+    total_tpr_knn=[]
+    total_auc_knn=[]
+    total_confmat_knn=[]
     knn_accuracies=[]
     knn_precisions=[]
     knn_recalls=[]
     knn_f1s = []
     
-    total_fpr_svm=[0.0, 0.0, 1.0]
-    total_tpr_svm=[0.0, 0.0, 1.0]
+    total_fpr_svm=[]
+    total_tpr_svm=[]
+    total_auc_svm=[]
+    total_confmat_svm=[]
     svm_accuracies=[]
     svm_precisions=[]
     svm_recalls=[]
     svm_f1s = []
     
-    total_fpr_dnn=[0.0, 0.0, 1.0]
-    total_tpr_dnn=[0.0, 0.0, 1.0]
+    total_fpr_dnn=[]
+    total_tpr_dnn=[]
+    total_auc_dnn=[]
+    total_confmat_dnn=[]
     dnn_accuracies=[]
     dnn_precisions=[]
     dnn_recalls=[]
@@ -60,79 +68,83 @@ if __name__ == '__main__':
          
         knn_classifier = KNNClassifier(X_train_std, y_train, X_test_std, y_test, k=5)
         knn_classifier.train()
-        knn_accuracy, knn_precision, knn_recall, knn_f1 = knn_classifier.test(f, num_string)
-        knn_accuracies.append(knn_accuracy)
-        knn_precisions.append(knn_precision)
-        knn_recalls.append(knn_recall)
-        knn_f1s.append(knn_f1)
-      
-        svm_classifier = SVMClassifier(X_train_std, y_train, X_test_std, y_test)
-        svm_classifier.train()
-        svm_accuracy, svm_precision, svm_recall, svm_f1 = svm_classifier.test(f, num_string)
-        svm_accuracies.append(svm_accuracy)
-        svm_precisions.append(svm_precision)
-        svm_recalls.append(svm_recall)
-        svm_f1s.append(svm_f1)
+        knn_accuracy, knn_precision, knn_recall, knn_f1, total_confmat_knn, total_fpr_knn, total_tpr_knn, total_auc_knn = knn_classifier.test(f, num_string, total_confmat_knn, total_fpr_knn, total_tpr_knn, total_auc_knn)
+        knn_accuracies+=knn_accuracy
+        knn_precisions+=knn_precision
+        knn_recalls+=knn_recall
+        knn_f1s+=knn_f1
           
         dnn_classifier = DNNClassifier(X_train_std, y_train, X_test_std, y_test)
         dnn_classifier.train()
-        dnn_accuracy, dnn_precision, dnn_recall, dnn_f1 = dnn_classifier.test(f, num_string)
-        dnn_accuracies.append(dnn_accuracy)
-        dnn_precisions.append(dnn_precision)
-        dnn_recalls.append(dnn_recall)
-        dnn_f1s.append(dnn_f1)
+        dnn_accuracy, dnn_precision, dnn_recall, dnn_f1, total_confmat_dnn, total_fpr_dnn, total_tpr_dnn, total_auc_dnn = dnn_classifier.test(f, num_string, total_confmat_dnn, total_fpr_dnn, total_tpr_dnn, total_auc_dnn)
+        dnn_accuracies+=dnn_accuracy
+        dnn_precisions+=dnn_precision
+        dnn_recalls+=dnn_recall
+        dnn_f1s+=dnn_f1
+        
+        svm_classifier = SVMClassifier(X_train_std, y_train, X_test_std, y_test)
+        svm_classifier.train()
+        svm_accuracy, svm_precision, svm_recall, svm_f1, total_confmat_svm, total_fpr_svm, total_tpr_svm, total_auc_svm = svm_classifier.test(f, num_string, total_confmat_svm, total_fpr_svm, total_tpr_svm, total_auc_svm)
+        svm_accuracies+=svm_accuracy
+        svm_precisions+=svm_precision
+        svm_recalls+=svm_recall
+        svm_f1s+=svm_f1
+        
+    f.write("\n")
+    f.write(str(knn_accuracies/22)+","+str(knn_precisions/22)+","+str(knn_recalls/22)+","+str(knn_f1s/22)+","+
+            str(dnn_accuracies/22)+","+str(dnn_precisions/22)+","+str(dnn_recalls/22)+","+str(dnn_f1s/22)+","+
+            str(svm_accuracies/22)+","+str(svm_precisions/22)+","+str(svm_recalls/22)+","+str(svm_f1s/22))
+    
     
     f.close()
     
-    plt.title('KNN Avg Precision-Recall Curve')
-    plt.plot(knn_precisions, knn_recalls, 'b')
+    s_knn = UnivariateSpline(total_tpr_knn, total_fpr_knn)
+    xs = np.linspace(0.0, 1.0)
+    ys = s_knn(xs)
+    
+    roc_auc_knn = roc_auc_score(total_fpr_knn, total_tpr_knn)
+    plt.title('KNN ROC Curve')
+    plt.plot(total_tpr_knn, total_fpr_knn, 'o')
+    plt.plot(xs, ys, 'b', label='AUC = %.2F' % roc_auc_knn)
+    plt.legend(loc='lower right')
     plt.plot([0,1], [0,1], 'r--')
     plt.xlim([-0.1, 1.2])
     plt.ylim([-0.1, 1.2])
-    plt.ylabel('Precision')
-    plt.xlabel('Recall')
-    plt.savefig("D:\\Documents\\KNN3\\LL\\avgprc.png")
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+    plt.savefig("D:\\Documents\\KNN\\FFT\\roc.png")
     plt.close()
     
-#     total_fpr_dnn[1]/=22
-#     total_fpr_knn[1]/=22
-#     total_fpr_svm[1]/=22
-#     total_tpr_dnn[1]/=22
-#     total_tpr_knn[1]/=22
-#     total_tpr_svm[1]/=22
-#     
-#     roc_auc_knn = auc(total_fpr_knn, total_tpr_knn)
-#     plt.title('KNN Avg ROC Curve')
-#     plt.plot(total_fpr_knn, total_tpr_knn, 'b', label='AUC = %.2F' % roc_auc_knn)
-#     plt.legend(loc='lower right')
-#     plt.plot([0,1], [0,1], 'r--')
-#     plt.xlim([-0.1, 1.2])
-#     plt.ylim([-0.1, 1.2])
-#     plt.ylabel('True Positive Rate')
-#     plt.xlabel('False Positive Rate')
-#     plt.savefig("D:\\Documents\\KNN\\FFT\\avgroc.png")
-#     plt.close()
-#     
-#     roc_auc_svm = auc(total_fpr_svm, total_tpr_svm)
-#     plt.title('SVM Avg ROC Curve')
-#     plt.plot(total_fpr_svm, total_tpr_svm, 'b', label='AUC = %.2F' % roc_auc_svm)
-#     plt.legend(loc='lower right')
-#     plt.plot([0,1], [0,1], 'r--')
-#     plt.xlim([-0.1, 1.2])
-#     plt.ylim([-0.1, 1.2])
-#     plt.ylabel('True Positive Rate')
-#     plt.xlabel('False Positive Rate')
-#     plt.savefig("D:\\Documents\\SVM\\FFT\\avgroc.png")
-#     plt.close()
-#     
-#     roc_auc_dnn = auc(total_fpr_dnn, total_tpr_dnn)
-#     plt.title('DNN Avg ROC Curve')
-#     plt.plot(total_fpr_dnn, total_tpr_dnn, 'b', label='AUC = %.2F' % roc_auc_dnn)
-#     plt.legend(loc='lower right')
-#     plt.plot([0,1], [0,1], 'r--')
-#     plt.xlim([-0.1, 1.2])
-#     plt.ylim([-0.1, 1.2])
-#     plt.ylabel('True Positive Rate')
-#     plt.xlabel('False Positive Rate')
-#     plt.savefig("D:\\Documents\\DNN\\FFT\\avgroc.png")
-#     plt.close()
+    s_dnn = UnivariateSpline(total_tpr_dnn, total_fpr_dnn)
+    xs = np.linspace(0.0, 1.0)
+    ys = s_knn(xs)
+    
+    roc_auc_dnn = roc_auc_score(total_fpr_dnn, total_tpr_dnn)
+    plt.title('DNN ROC Curve')
+    plt.plot(total_tpr_dnn, total_fpr_dnn, 'o')
+    plt.plot(xs, ys, 'b', label='AUC = %.2F' % roc_auc_dnn)
+    plt.legend(loc='lower right')
+    plt.plot([0,1], [0,1], 'r--')
+    plt.xlim([-0.1, 1.2])
+    plt.ylim([-0.1, 1.2])
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+    plt.savefig("D:\\Documents\\DNN\\FFT\\roc.png")
+    plt.close()
+    
+    s_svm = UnivariateSpline(total_tpr_svm, total_fpr_svm)
+    xs = np.linspace(0.0, 1.0)
+    ys = s_svm(xs)
+    
+    roc_auc_svm = roc_auc_score(total_fpr_svm, total_tpr_svm)
+    plt.title('SVM ROC Curve')
+    plt.plot(total_tpr_svm, total_fpr_svm, 'o')
+    plt.plot(xs, ys, 'b', label='AUC = %.2F' % roc_auc_svm)
+    plt.legend(loc='lower right')
+    plt.plot([0,1], [0,1], 'r--')
+    plt.xlim([-0.1, 1.2])
+    plt.ylim([-0.1, 1.2])
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+    plt.savefig("D:\\Documents\\SVM\\FFT\\roc.png")
+    plt.close()

@@ -14,6 +14,7 @@ from tensorflow.contrib.metrics.python.metrics.classification import accuracy
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, roc_curve, auc
 import matplotlib.pyplot as plt
 from sklearn.metrics.classification import f1_score
+from sklearn.metrics.ranking import roc_auc_score
 
 class DNNClassifier(object):
     '''
@@ -92,22 +93,21 @@ class DNNClassifier(object):
     def get_test_inputs_only(self):
         return tf.constant(self.test_dataset.data)
     
-    def test(self, f, patient_num, total_fpr, total_tpr):
+    def test(self, f, patient_num, total_confmat, total_fpr, total_tpr, total_auc):
         print('Started testing')
 
         score = list(self.classifier.predict_classes(input_fn=self.get_test_inputs_only))
         y_pred = np.array(score).astype(int)
         accuracy = accuracy_score(self.y_test, y_pred)
-        precision = precision_score(self.y_test, y_pred, average="macro")
-        f1 = f1_score(self.y_test, y_pred, average="macro")
-        recall = recall_score(self.y_test, y_pred, average="macro")
+        precision = precision_score(self.y_test, y_pred)
+        f1 = f1_score(self.y_test, y_pred)
+        recall = recall_score(self.y_test, y_pred)
         print("Accuracy: %.2f" % accuracy)
         print("Precision: %.2f" % precision)
         print("Recall: %.2f" % recall)
         print("F1: %.2f" % f1)
-        line = str(accuracy)+","+str(precision)+","+str(recall)
+        line = str(accuracy)+","+str(precision)+","+str(recall)+","+str(f1)+","
         f.write(line)
-        f.write("\n")
         confmat = confusion_matrix(self.y_test, y_pred)
         fig, ax = plt.subplots(figsize=(2.5, 2.5))
         ax.matshow(confmat, cmap=plt.cm.Blues, alpha=0.3)
@@ -118,14 +118,21 @@ class DNNClassifier(object):
         plt.ylabel('true label')
         plt.savefig("D:\\Documents\\DNN3\\LL\\chb"+patient_num+"_confmat.png")
         plt.close()
-#         fpr, tpr, thresholds = roc_curve(self.y_test, y_pred)
-#         print("fpr", fpr)
-#         print("tpr", tpr)
-#         total_fpr[1]+=fpr[len(fpr)-2]
-#         total_tpr[1]+=tpr[len(tpr)-2]
-#         print(total_fpr)
-#         print(total_tpr)
-#         roc_auc = auc(fpr, tpr)
+        total_confmat.append(confmat)
+        fpr, tpr, thresholds = roc_curve(self.y_test, y_pred)
+        print("fpr", fpr)
+        print("tpr", tpr)
+        for coor in fpr:
+            if (coor!=0.0) and (coor!=1.0):
+                total_fpr.append(coor)
+            else:
+                total_fpr.append(0.5)
+        for coor in tpr:
+            if (coor!=0.0) and (coor!=1.0):
+                total_tpr.append(coor)
+            else:
+                total_tpr.append(0.5)
+        total_auc.append(roc_auc_score(fpr, tpr))
 #         plt.title('ROC Curve')
 #         plt.plot(fpr, tpr, 'b', label='AUC = %.2F' % roc_auc)
 #         plt.legend(loc='lower right')
@@ -136,4 +143,4 @@ class DNNClassifier(object):
 #         plt.xlabel('False Positive Rate')
 #         plt.savefig("D:\\Documents\\DNN\\FFT\\chb"+patient_num+"roc.png")
 #         plt.close()
-        return total_fpr, total_tpr
+        return accuracy, precision, recall, f1, total_confmat, total_fpr, total_tpr, total_auc
