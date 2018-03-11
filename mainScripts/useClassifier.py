@@ -5,103 +5,252 @@ Created on Dec 26, 2017
 '''
 
 from TrainAndTest.KNNClassifier import KNNClassifier
+from sklearn.cross_validation import train_test_split
+from sklearn.preprocessing.data import StandardScaler
 import sys
+import numpy as np
 from TrainAndTest.DNNClassifier import DNNClassifier
 from TrainAndTest.SVMClassifier import SVMClassifier
 from sklearn.metrics import auc
 import matplotlib.pyplot as plt
+from sklearn.metrics.ranking import roc_auc_score
+from scipy.interpolate.fitpack2 import UnivariateSpline
+from numpy import dtype, float32
 if __name__ == '__main__':
-    root="D:\\Documents\\ReadyForTensorFlow\\FFT\\chb"
-    f = open('D:\\Documents\\resultsFFT.csv', 'w')
-    total_fpr_knn=[0.0, 0.0, 1.0]
-    total_tpr_knn=[0.0, 0.0, 1.0]
+    root="D:\\Documents\\LL_PreIctal\\chb"
+    f = open('D:\\Documents\\multiple\\resultsLL.csv', 'w')
+    total_fpr_knn=[]
+    total_tpr_knn=[]
+    total_auc_knn=[]
+    total_confmat_knn=np.zeros([2,2])
+    knn_accuracies=[]
+    knn_precisions=[]
+    knn_recalls=[]
+    knn_f1s = []
     
-    total_fpr_svm=[0.0, 0.0, 1.0]
-    total_tpr_svm=[0.0, 0.0, 1.0]
+    total_fpr_svm=[]
+    total_tpr_svm=[]
+    total_auc_svm=[]
+    total_confmat_svm=np.zeros([2,2])
+    svm_accuracies=[]
+    svm_precisions=[]
+    svm_recalls=[]
+    svm_f1s = []
     
-    total_fpr_dnn=[0.0, 0.0, 1.0]
-    total_tpr_dnn=[0.0, 0.0, 1.0]
+    total_fpr_dnn=[]
+    total_tpr_dnn=[]
+    total_auc_dnn=[]
+    total_confmat_dnn=np.zeros([2,2])
+    dnn_accuracies=[]
+    dnn_precisions=[]
+    dnn_recalls=[]
+    dnn_f1s = []
     
-    for index in range(0,16):
-        num = index+1
-        if num<10:
-            num_string="0" + str(num)
-        else:
-            num_string=str(num)
-        train_path = root + num_string + ".Xy_train.csv"
-        test_path = root + num_string + ".Xy_test.csv"
-         
-        knn_classifier = KNNClassifier(train_path, test_path, k=5)
-        knn_classifier.train()
-        total_fpr_knn, total_tpr_knn = knn_classifier.test(f, num_string, total_fpr_knn, total_tpr_knn)
-      
-        svm_classifier = SVMClassifier(train_path, test_path)
-        svm_classifier.train()
-        total_fpr_svm, total_tpr_svm = svm_classifier.test(f, num_string, total_fpr_svm, total_tpr_svm)
-          
-        dnn_classifier = DNNClassifier(train_path, test_path)
-        dnn_classifier.train()
-        total_fpr_dnn, total_tpr_dnn = dnn_classifier.test(f, num_string, total_fpr_dnn, total_tpr_dnn)
+    filepath = root + "04" + ".csv"
     
-    for index in range(17,23):
-        num = index+1
-        num_string=str(num)
-        train_path = root + num_string + ".Xy_train.csv"
-        test_path = root + num_string + ".Xy_test.csv"
-        
-        knn_classifier = KNNClassifier(train_path, test_path, k=5)
-        knn_classifier.train()
-        total_fpr_knn, total_tpr_knn = knn_classifier.test(f, num_string, total_fpr_knn, total_tpr_knn)
-     
-        svm_classifier = SVMClassifier(train_path, test_path)
-        svm_classifier.train()
-        total_fpr_svm, total_tpr_svm = svm_classifier.test(f, num_string, total_fpr_svm, total_tpr_svm)
-         
-        dnn_classifier = DNNClassifier(train_path, test_path)
-        dnn_classifier.train()
-        total_fpr_dnn, total_tpr_dnn = dnn_classifier.test(f, num_string, total_fpr_dnn, total_tpr_dnn)
+    arr = np.genfromtxt(filepath, delimiter=',')
+    X = np.delete(arr, [arr.shape[1]-1], axis=1)
+    y = np.delete(arr, list(range(arr.shape[1]-1)), axis=1)
+    Xns = []
+    yns = []
+    Xs = []
+    ys = []
     
-    f.close()
+    for i in range(len(y)):
+        if y[i] == 0:
+            Xns.append(X[i])
+            yns.append(y[i])
+        elif y[i] == 1:
+            Xs.append(X[i])
+            ys.append(y[i])
+    Xs = np.array(Xs)
+    ys = np.array(ys)
+    Xns = np.array(Xns)
+    yns = np.array(yns)
     
-    total_fpr_dnn[1]/=23
-    total_fpr_knn[1]/=23
-    total_fpr_svm[1]/=23
-    total_tpr_dnn[1]/=23
-    total_tpr_knn[1]/=23
-    total_tpr_svm[1]/=23
+    Xs_train, Xs_test, ys_train, ys_test = train_test_split(Xs, ys, test_size=0.3, random_state=0)
+    Xns_train, Xns_test, yns_train, yns_test = train_test_split(Xns, yns, test_size=0.3, random_state=0)
     
-    roc_auc_knn = auc(total_fpr_knn, total_tpr_knn)
-    plt.title('KNN Avg ROC Curve')
-    plt.plot(total_fpr_knn, total_tpr_knn, 'b', label='AUC = %.2F' % roc_auc_knn)
-    plt.legend(loc='lower right')
-    plt.plot([0,1], [0,1], 'r--')
-    plt.xlim([-0.1, 1.2])
-    plt.ylim([-0.1, 1.2])
-    plt.ylabel('True Positive Rate')
-    plt.xlabel('False Positive Rate')
-    plt.savefig("D:\\Documents\\KNN\\FFT\\avgroc.png")
-    plt.close()
+    print("Train:")
+    print("Xs: ", Xs_train.shape)
+    print("Xns: ", Xns_train.shape)
+    print("ys: ", ys_train.shape)
+    print("yns: ", yns_train.shape)
     
-    roc_auc_svm = auc(total_fpr_svm, total_tpr_svm)
-    plt.title('SVM Avg ROC Curve')
-    plt.plot(total_fpr_svm, total_tpr_svm, 'b', label='AUC = %.2F' % roc_auc_svm)
-    plt.legend(loc='lower right')
-    plt.plot([0,1], [0,1], 'r--')
-    plt.xlim([-0.1, 1.2])
-    plt.ylim([-0.1, 1.2])
-    plt.ylabel('True Positive Rate')
-    plt.xlabel('False Positive Rate')
-    plt.savefig("D:\\Documents\\SVM\\FFT\\avgroc.png")
-    plt.close()
+    print("Test:")
+    print("Xs: ", Xs_test.shape)
+    print("Xns: ", Xns_test.shape)
+    print("ys: ", ys_test.shape)
+    print("yns: ", yns_test.shape)
     
-    roc_auc_dnn = auc(total_fpr_dnn, total_tpr_dnn)
-    plt.title('DNN Avg ROC Curve')
-    plt.plot(total_fpr_dnn, total_tpr_dnn, 'b', label='AUC = %.2F' % roc_auc_dnn)
-    plt.legend(loc='lower right')
-    plt.plot([0,1], [0,1], 'r--')
-    plt.xlim([-0.1, 1.2])
-    plt.ylim([-0.1, 1.2])
-    plt.ylabel('True Positive Rate')
-    plt.xlabel('False Positive Rate')
-    plt.savefig("D:\\Documents\\DNN\\FFT\\avgroc.png")
-    plt.close()
+    X_train = np.vstack((Xns_train, Xs_train))
+    y_train = np.vstack((yns_train, ys_train))
+    X_test = np.vstack((Xns_test, Xs_test))
+    y_test = np.vstack((yns_test, ys_test))
+    
+    for i in range(y_test.shape[0]):
+        if y_test[i]==1:
+            print("true")
+    sc = StandardScaler()
+    sc.fit(X_train)
+    X_train_std = sc.transform(X_train)
+    X_test_std = sc.transform(X_test)
+    
+    dnn_classifier = DNNClassifier(X_train_std, y_train, X_test_std, y_test)
+    dnn_classifier.train()
+    dnn_classifier.test(f, "01", total_confmat_dnn, total_fpr_dnn, total_tpr_dnn, total_auc_dnn)
+    
+#     for index in range(0,23):
+#         num = index+1
+#         if(num==16):
+#             continue
+#         if num<10:
+#             num_string="0" + str(num)
+#         else:
+#             num_string=str(num)
+#         filepath = root + num_string + ".csv"
+#          
+#         arr = np.genfromtxt(filepath, delimiter=',')
+#         X = np.delete(arr, [arr.shape[1]-1], axis=1)
+#         y = np.delete(arr, list(range(arr.shape[1]-1)), axis=1)
+#         Xns = []
+#         yns = []
+#         Xs = []
+#         ys = []
+#         
+#         for i in range(len(y)):
+#             if y[i] == 0:
+#                 Xns.append(X[i])
+#                 yns.append(y[i])
+#             elif y[i] == 1:
+#                 Xs.append(X[i])
+#                 ys.append(y[i])
+#         Xs = np.array(Xs)
+#         ys = np.array(ys)
+#         Xns = np.array(Xns)
+#         yns = np.array(yns)
+#         Xs_train, Xs_test, ys_train, ys_test = train_test_split(Xs, ys, test_size=0.3, random_state=0)
+#         Xns_train, Xns_test, yns_train, yns_test = train_test_split(Xns, yns, test_size=0.3, random_state=0)
+#         X_train = np.concatenate(Xns_train, Xs_train)
+#         y_train = np.concatenate(yns_train, ys_train)
+#         X_test = np.concatenate(Xns_test, Xs_test)
+#         y_test = np.concatenate(yns_test, ys_test)
+#         sc = StandardScaler()
+#         sc.fit(X_train)
+#         X_train_std = sc.transform(X_train)
+#         X_test_std = sc.transform(X_test)
+#          
+#         print("Currently on chb"+num_string)
+#           
+#         knn_classifier = KNNClassifier(X_train_std, y_train, X_test_std, y_test, k=5)
+#         knn_classifier.train()
+#         knn_accuracy, knn_precision, knn_recall, knn_f1, total_confmat_knn, total_fpr_knn, total_tpr_knn, total_auc_knn = knn_classifier.test(f, num_string, total_confmat_knn, total_fpr_knn, total_tpr_knn, total_auc_knn)
+#         knn_accuracies+=knn_accuracy
+#         knn_precisions+=knn_precision
+#         knn_recalls+=knn_recall
+#         knn_f1s+=knn_f1
+#             
+#         dnn_classifier = DNNClassifier(X_train_std, y_train, X_test_std, y_test)
+#         dnn_classifier.train()
+#         dnn_accuracy, dnn_precision, dnn_recall, dnn_f1, total_confmat_dnn, total_fpr_dnn, total_tpr_dnn, total_auc_dnn = dnn_classifier.test(f, num_string, total_confmat_dnn, total_fpr_dnn, total_tpr_dnn, total_auc_dnn)
+#         dnn_accuracies+=dnn_accuracy
+#         dnn_precisions+=dnn_precision
+#         dnn_recalls+=dnn_recall
+#         dnn_f1s+=dnn_f1
+#          
+#         svm_classifier = SVMClassifier(X_train_std, y_train, X_test_std, y_test)
+#         svm_classifier.train()
+#         svm_accuracy, svm_precision, svm_recall, svm_f1, total_confmat_svm, total_fpr_svm, total_tpr_svm, total_auc_svm = svm_classifier.test(f, num_string, total_confmat_svm, total_fpr_svm, total_tpr_svm, total_auc_svm)
+#         svm_accuracies+=svm_accuracy
+#         svm_precisions+=svm_precision
+#         svm_recalls+=svm_recall
+#         svm_f1s+=svm_f1
+#          
+#     f.write("\n")
+#     f.write(str(knn_accuracies/22)+","+str(knn_precisions/22)+","+str(knn_recalls/22)+","+str(knn_f1s/22)+","+
+#             str(dnn_accuracies/22)+","+str(dnn_precisions/22)+","+str(dnn_recalls/22)+","+str(dnn_f1s/22)+","+
+#             str(svm_accuracies/22)+","+str(svm_precisions/22)+","+str(svm_recalls/22)+","+str(svm_f1s/22))
+# #     f.write(str(svm_accuracies/22)+","+str(svm_precisions/22)+","+str(svm_recalls/22)+","+str(svm_f1s/22))
+#      
+#     f.close()
+#      
+#     s_knn = UnivariateSpline(total_fpr_knn, total_tpr_knn, k=2)
+#     xs = np.linspace(0.0, 1.0, 200)
+#     ys = s_knn(xs)
+#       
+#     fig, ax = plt.subplots(figsize=(2.5, 2.5))
+#     ax.matshow(total_confmat_knn, cmap=plt.cm.Blues, alpha=0.3)
+#     for i in range(total_confmat_knn.shape[0]):
+#         for j in range(total_confmat_knn.shape[1]):
+#             ax.text(x=j, y=i, s=total_confmat_knn[i,j], va='center', ha='center')
+#     plt.xlabel('predicted label')
+#     plt.ylabel('true label')
+#     plt.savefig("D:\\Documents\\KNN3\\LL\\total_confmat.png")
+#     plt.close()
+#       
+#     roc_auc_knn = auc(xs, ys)
+#     plt.title('KNN LL ROC Curve')
+#     plt.plot(total_fpr_knn, total_tpr_knn, 'o')
+#     plt.plot(xs, ys, 'b', label='AUC = %.2F' % roc_auc_knn)
+#     plt.legend(loc='lower right')
+#     plt.plot([0,1], [0,1], 'r--')
+#     plt.xlim([-0.1, 1.2])
+#     plt.ylim([-0.1, 1.2])
+#     plt.ylabel('True Positive Rate')
+#     plt.xlabel('False Positive Rate')
+#     plt.savefig("D:\\Documents\\KNN3\\LL\\roc.png")
+#     plt.close()
+# #     
+#     s_dnn = UnivariateSpline(total_fpr_dnn, total_tpr_dnn, k=2)
+#     xs = np.linspace(0.0, 1.0)
+#     ys = s_knn(xs)
+#       
+#     fig, ax = plt.subplots(figsize=(2.5, 2.5))
+#     ax.matshow(total_confmat_dnn, cmap=plt.cm.Blues, alpha=0.3)
+#     for i in range(total_confmat_dnn.shape[0]):
+#         for j in range(total_confmat_dnn.shape[1]):
+#             ax.text(x=j, y=i, s=total_confmat_dnn[i,j], va='center', ha='center')
+#     plt.xlabel('predicted label')
+#     plt.ylabel('true label')
+#     plt.savefig("D:\\Documents\\DNN3\\LL\\total_confmat.png")
+#     plt.close()
+#       
+#     roc_auc_dnn = roc_auc_score(total_fpr_dnn, total_tpr_dnn)
+#     plt.title('DNN ROC Curve')
+#     plt.plot(total_tpr_dnn, total_fpr_dnn, 'o')
+#     plt.plot(xs, ys, 'b', label='AUC = %.2F' % roc_auc_dnn)
+#     plt.legend(loc='lower right')
+#     plt.plot([0,1], [0,1], 'r--')
+#     plt.xlim([-0.1, 1.2])
+#     plt.ylim([-0.1, 1.2])
+#     plt.ylabel('True Positive Rate')
+#     plt.xlabel('False Positive Rate')
+#     plt.savefig("D:\\Documents\\DNN3\\LL\\roc.png")
+#     plt.close()
+#      
+#     s_svm = UnivariateSpline(total_fpr_svm, total_tpr_svm, k=2)
+#     xs = np.linspace(0.0, 1.0, 200)
+#     ys = s_svm(xs)
+#      
+#     fig, ax = plt.subplots(figsize=(2.5, 2.5))
+#     ax.matshow(total_confmat_svm, cmap=plt.cm.Blues, alpha=0.3)
+#     for i in range(total_confmat_svm.shape[0]):
+#         for j in range(total_confmat_svm.shape[1]):
+#             ax.text(x=j, y=i, s=total_confmat_svm[i,j], va='center', ha='center')
+#     plt.xlabel('predicted label')
+#     plt.ylabel('true label')
+#     plt.savefig("D:\\Documents\\SVM3\\LL\\total_confmat.png")
+#     plt.close()
+#      
+#     roc_auc_svm = auc(xs, ys)
+#     plt.title('SVM LL ROC Curve')
+#     plt.plot(total_fpr_svm, total_tpr_svm, 'o')
+#     plt.plot(xs, ys, 'b', label='AUC = %.2F' % roc_auc_svm)
+#     plt.legend(loc='lower right')
+#     plt.plot([0,1], [0,1], 'r--')
+#     plt.xlim([-0.1, 1.2])
+#     plt.ylim([-0.1, 1.2])
+#     plt.ylabel('True Positive Rate')
+#     plt.xlabel('False Positive Rate')
+#     plt.savefig("D:\\Documents\\SVM3\\LL\\roc.png")
+#     plt.close()

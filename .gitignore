@@ -106,3 +106,5 @@ ENV/
 .pydevproject
 
 .settings/
+
+mainScripts/DNNClassifier_Data/
