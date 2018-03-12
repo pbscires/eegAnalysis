@@ -68,6 +68,11 @@ if __name__ == '__main__':
     Xns = np.array(Xns)
     yns = np.array(yns)
     
+    if Xns.shape[0] > 10000:
+        print("Reshaping")
+        Xns.resize((10000, Xns.shape[1]))
+        yns.resize((10000, yns.shape[1]))
+    
     Xs_train, Xs_test, ys_train, ys_test = train_test_split(Xs, ys, test_size=0.3, random_state=0)
     Xns_train, Xns_test, yns_train, yns_test = train_test_split(Xns, yns, test_size=0.3, random_state=0)
     
