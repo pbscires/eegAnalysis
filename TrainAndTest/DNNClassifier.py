@@ -127,7 +127,11 @@ class DNNClassifier(object):
         plt.savefig("D:\\Documents\\test_confmat.png")
 #         print(plt.figimage())
         plt.close()
-        probas = list(self.classifier.predict_proba(input_fn=self.get_test_inputs_only))
+#         probas = list(self.classifier.predict_proba(input_fn=self.get_test_inputs_only))
+        probas = self.classifier.predict_proba(input_fn=self.get_test_inputs_only, as_iterable=False)
+        print ("probas.shape = ", probas.shape)
+        probas_1d = probas[:, 1]
+        print("probas_1d.shape = ", probas_1d.shape)
         fpr, tpr, thresholds = roc_curve(self.y_test, probas[:,1], pos_label=1)
 #         total_tpr = interp(total_fpr, fpr, tpr)
 #         total_tpr[0] = 0.0

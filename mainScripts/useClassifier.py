@@ -8,6 +8,7 @@ from TrainAndTest.KNNClassifier import KNNClassifier
 from sklearn.cross_validation import train_test_split
 from sklearn.preprocessing.data import StandardScaler
 import sys
+import os
 import numpy as np
 from TrainAndTest.DNNClassifier import DNNClassifier
 from TrainAndTest.SVMClassifier import SVMClassifier
@@ -16,9 +17,46 @@ import matplotlib.pyplot as plt
 from sklearn.metrics.ranking import roc_auc_score
 from scipy.interpolate.fitpack2 import UnivariateSpline
 from numpy import dtype, float32
-if __name__ == '__main__':
-    root="D:\\Documents\\LL_PreIctal\\chb"
-    f = open('D:\\Documents\\multiple\\resultsLL.csv', 'w')
+from util.JsonReader import JsonReader
+from util.ConfigJsonReader import ConfigJsonReader
+
+
+pgmName = sys.argv[0]
+if (len(sys.argv) > 1):
+    cfgFilename = sys.argv[1]
+else:
+    cfgFilename = pgmName.replace(".py", ".json")
+
+def readArguments():
+    global jsonData
+    global csvInDir, resultsFile
+    global subjectNames
+    global seizuresFile
+    global features
+    global outDir
+    global subjectFiles
+
+    print ("cfgFilename = ", cfgFilename)
+    jsonData = JsonReader(cfgFilename)
+    subjectNames = jsonData.get_value("SubjectNames")
+    csvInDir = jsonData.get_value("CSVInDir")
+    resultsFile = jsonData.get_value("resultsFile")
+
+    print ("subjectNames = ", subjectNames)
+    print ("csvInDir = ", csvInDir)
+    print ("resultsFile = ", resultsFile)
+
+    return
+
+def processSubject(subject):
+    global csvInDir, resultsFile
+
+    print ("Processing per-subject files for ", subject)
+    subjectPath = os.path.join(csvInDir, subject+'.csv')
+    print ("subject path = ", subjectPath)
+#     root="D:\\Documents\\LL_PreIctal\\chb"
+#     f = open('D:\\Documents\\multiple\\resultsLL.csv', 'w')
+    f = open(resultsFile, 'w')
     total_fpr_knn=[]
     total_tpr_knn=[]
     total_auc_knn=[]
@@ -27,7 +65,7 @@ if __name__ == '__main__':
     knn_precisions=[]
     knn_recalls=[]
     knn_f1s = []
-    
+
     total_fpr_svm=[]
     total_tpr_svm=[]
     total_auc_svm=[]
@@ -36,7 +74,7 @@ if __name__ == '__main__':
     svm_precisions=[]
     svm_recalls=[]
     svm_f1s = []
-    
+
     total_fpr_dnn=[]
     total_tpr_dnn=[]
     total_auc_dnn=[]
@@ -45,17 +83,17 @@ if __name__ == '__main__':
     dnn_precisions=[]
     dnn_recalls=[]
     dnn_f1s = []
-    
-    filepath = root + "04" + ".csv"
-    
-    arr = np.genfromtxt(filepath, delimiter=',')
+
+#         filepath = root + "04" + ".csv"
+
+    arr = np.genfromtxt(subjectPath, delimiter=',')
     X = np.delete(arr, [arr.shape[1]-1], axis=1)
     y = np.delete(arr, list(range(arr.shape[1]-1)), axis=1)
     Xns = []
     yns = []
     Xs = []
     ys = []
-    
+
     for i in range(len(y)):
         if y[i] == 0:
             Xns.append(X[i])
@@ -68,29 +106,40 @@ if __name__ == '__main__':
     Xns = np.array(Xns)
     yns = np.array(yns)
     
+    if Xns.shape[0] > 10000:
+        print("Reshaping")
+        Xns.resize((10000, Xns.shape[1]))
+        yns.resize((10000, yns.shape[1]))
+    
     Xs_train, Xs_test, ys_train, ys_test = train_test_split(Xs, ys, test_size=0.3, random_state=0)
     Xns_train, Xns_test, yns_train, yns_test = train_test_split(Xns, yns, test_size=0.3, random_state=0)
-    
-    print("Train:")
-    print("Xs: ", Xs_train.shape)
-    print("Xns: ", Xns_train.shape)
-    print("ys: ", ys_train.shape)
-    print("yns: ", yns_train.shape)
-    
-    print("Test:")
-    print("Xs: ", Xs_test.shape)
-    print("Xns: ", Xns_test.shape)
-    print("ys: ", ys_test.shape)
-    print("yns: ", yns_test.shape)
     
     X_train = np.vstack((Xns_train, Xs_train))
     y_train = np.vstack((yns_train, ys_train))
     X_test = np.vstack((Xns_test, Xs_test))
     y_test = np.vstack((yns_test, ys_test))
+
+    print("Train:")
+    print("Xs_train: ", Xs_train.shape)
+    print("Xns_train: ", Xns_train.shape)
+    print("ys_train: ", ys_train.shape)
+    print("yns_train: ", yns_train.shape)
+    print("X_train: ", X_train)
+    print("y_train: ", y_train)
     
-    for i in range(y_test.shape[0]):
-        if y_test[i]==1:
-            print("true")
+    print("Test:")
+    print("Xs_test: ", Xs_test.shape)
+    print("Xns_test: ", Xns_test.shape)
+    print("ys_test: ", ys_test.shape)
+    print("yns_test: ", yns_test.shape)
+    print("X_test: ", X_test)
+    print("y_test: ", y_test)
+    
+#     exit(0)
+    
+#    for i in range(y_test.shape[0]):
+#        if y_test[i]==1:
+#            print("true")
     sc = StandardScaler()
     sc.fit(X_train)
     X_train_std = sc.transform(X_train)
@@ -99,6 +148,22 @@ if __name__ == '__main__':
     dnn_classifier = DNNClassifier(X_train_std, y_train, X_test_std, y_test)
     dnn_classifier.train()
     dnn_classifier.test(f, "01", total_confmat_dnn, total_fpr_dnn, total_tpr_dnn, total_auc_dnn)
+
+
+
+if __name__ == '__main__':
+    global csvInDir, resultsFile
+    global subjectNames
+
+    print ("pgmName = ", pgmName)
+    readArguments()
+#     exit(0)
+
+    for subject in subjectNames:
+        processSubject(subject)
+    
+#     exit(0)
+
     
 #     for index in range(0,23):
 #         num = index+1
