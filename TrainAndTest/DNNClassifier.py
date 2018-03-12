@@ -94,14 +94,14 @@ class DNNClassifier(object):
     def get_test_inputs_only(self):
         return tf.constant(self.test_dataset.data)
     
-    def test(self, f, patient_num, total_confmat, total_fpr, total_tpr, total_auc):
+    def test(self, f, patient_num, total_confmat, total_fpr, total_tpr):
         print('Started testing')
         
         score = list(self.classifier.predict_classes(input_fn=self.get_test_inputs_only))
         y_pred = np.array(score).astype(int)
-        for i in range(y_pred.shape[0]):
-            if y_pred[i]==1:
-                print("true")
+#         for i in range(y_pred.shape[0]):
+#             if y_pred[i]==1:
+#                 print("true")
         print(y_pred)
         accuracy = accuracy_score(self.y_test, y_pred)
         precision = precision_score(self.y_test, y_pred)
@@ -112,7 +112,6 @@ class DNNClassifier(object):
         print("Recall: %.2f" % recall)
         print("F1: %.2f" % f1)
         line = str(accuracy)+","+str(precision)+","+str(recall)+","+str(f1)+","
-#         f.write(line)
         confmat = confusion_matrix(self.y_test, y_pred)
         for i in range(0,2):
             for j in range(0,2):
@@ -124,44 +123,21 @@ class DNNClassifier(object):
                 ax.text(x=j, y=i, s=confmat[i,j], va='center', ha='center')
         plt.xlabel('predicted label')
         plt.ylabel('true label')
-        plt.savefig("D:\\Documents\\test_confmat.png")
-#         print(plt.figimage())
+        plt.savefig("D:\\Documents\\DNN3\\LL\\"+patient_num+"_confmat.png")
         plt.close()
-#         probas = list(self.classifier.predict_proba(input_fn=self.get_test_inputs_only))
         probas = self.classifier.predict_proba(input_fn=self.get_test_inputs_only, as_iterable=False)
         print ("probas.shape = ", probas.shape)
-        probas_1d = probas[:, 1]
-        print("probas_1d.shape = ", probas_1d.shape)
         fpr, tpr, thresholds = roc_curve(self.y_test, probas[:,1], pos_label=1)
-#         total_tpr = interp(total_fpr, fpr, tpr)
-#         total_tpr[0] = 0.0
-#         plt.plot(fpr, tpr, lw=1)
-        
-#         for i in range(len(fpr)):
-# #             if fpr[i]*1==0:
-# #                 fpr[i]=0.0
-# #             elif fpr[i]*1==1:
-# #                 fpr[i]=1.0
-#             fpr[i].round(5)
-#         for i in range(len(tpr)):
-# #             if tpr[i]*1==0:
-# #                 tpr[i]=0.0
-# #             elif tpr[i]*1==1:
-# #                 tpr[i]=1.0
-#             tpr[i].round(5)
         print("fpr", fpr)
         print("tpr", tpr)
-#         for coor in fpr:
-#             if (coor!=0.0) and (coor!=1.0):
-#                 total_fpr.append(coor)
-# #             else:
-# #                 total_fpr.append(0.5)
-#         for coor in tpr:
-#             if (coor!=0.0) and (coor!=1.0):
-#                 total_tpr.append(coor)
-#             else:
-#                 total_tpr.append(0.5)
-#         total_auc.append(roc_auc_score(self.y_test, y_pred))
+        if total_fpr is None:
+            total_fpr = fpr
+        else:
+            total_fpr = np.hstack((total_fpr,fpr))
+        if total_tpr is None:
+            total_tpr = tpr
+        else:
+            total_tpr = np.hstack((total_tpr, tpr))
         roc_auc = auc(fpr, tpr)
         plt.title('ROC Curve')
         plt.plot(fpr, tpr, 'b', label='AUC = %.2F' % roc_auc)
@@ -171,7 +147,6 @@ class DNNClassifier(object):
         plt.ylim([-0.1, 1.2])
         plt.ylabel('True Positive Rate')
         plt.xlabel('False Positive Rate')
-        plt.savefig("D:\\Documents\\test_roc.png")
-#         print(plt.figimage())
+        plt.savefig("D:\\Documents\\DNN3\\LL\\"+patient_num+"_roc.png")
         plt.close()
-#         return accuracy, precision, recall, f1, total_confmat, total_fpr, total_tpr, total_auc
+        return accuracy, precision, recall, f1, total_confmat, total_fpr, total_tpr

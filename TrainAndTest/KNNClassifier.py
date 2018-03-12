@@ -49,7 +49,7 @@ class KNNClassifier():
     def train(self):
         self.classifier.fit(self.X_train, self.y_train.ravel())
     
-    def test(self, f, patient_num, total_confmat, total_fpr, total_tpr, total_auc):
+    def test(self, f, patient_num, total_confmat, total_fpr, total_tpr):
         y_pred = self.classifier.predict(self.X_test)
         accuracy = accuracy_score(self.y_test, y_pred)
         precision = precision_score(self.y_test, y_pred)
@@ -72,43 +72,29 @@ class KNNClassifier():
                 ax.text(x=j, y=i, s=confmat[i,j], va='center', ha='center')
         plt.xlabel('predicted label')
         plt.ylabel('true label')
-        plt.savefig("D:\\Documents\\KNN3\\LL\\chb"+patient_num+"_confmat.png")
+        plt.savefig("D:\\Documents\\KNN3\\LL\\"+patient_num+"_confmat.png")
         plt.close()
-        fpr, tpr, thresholds = roc_curve(self.y_test, y_pred)
-        for i in range(len(fpr)):
-            if fpr[i]*1==0:
-                fpr[i]=0.0
-            elif fpr[i]*1==1:
-                fpr[i]=1.0
-        for i in range(len(tpr)):
-            if tpr[i]*1==0:
-                tpr[i]=0.0
-            elif tpr[i]*1==1:
-                tpr[i]=1.0
+        probas = self.classifier.predict_proba(self.X_test)
+        fpr, tpr, thresholds = roc_curve(self.y_test, probas[:,1], pos_label=1)
         print("fpr", fpr)
         print("tpr", tpr)
-        print(total_fpr)
-        print(total_tpr)
-        for coor in fpr:
-            if (coor!=0.0) and (coor!=1.0):
-                total_fpr.append(coor)
-            else:
-                total_fpr.append(0.5)
-        for coor in tpr:
-            if (coor!=0.0) and (coor!=1.0):
-                total_tpr.append(coor)
-            else:
-                total_tpr.append(0.5)
-        
-        total_auc.append(roc_auc_score(self.y_test, y_pred))
-#         plt.title('ROC Curve')
-#         plt.plot(fpr, tpr, 'b', label='AUC = %.2F' % roc_auc)
-#         plt.legend(loc='lower right')
-#         plt.plot([0,1], [0,1], 'r--')
-#         plt.xlim([-0.1, 1.2])
-#         plt.ylim([-0.1, 1.2])
-#         plt.ylabel('True Positive Rate')
-#         plt.xlabel('False Positive Rate')
-#         plt.savefig("D:\\Documents\\KNN\\FFT\\chb"+patient_num+"roc.png")
-#         plt.close()
-        return accuracy, precision, recall, f1, total_confmat, total_fpr, total_tpr, total_auc
+        if total_fpr is None:
+            total_fpr = fpr
+        else:
+            total_fpr = np.hstack((total_fpr,fpr))
+        if total_tpr is None:
+            total_tpr = tpr
+        else:
+            total_tpr = np.hstack((total_tpr, tpr))
+        roc_auc = auc(fpr, tpr)
+        plt.title('ROC Curve')
+        plt.plot(fpr, tpr, 'b', label='AUC = %.2F' % roc_auc)
+        plt.legend(loc='lower right')
+        plt.plot([0,1], [0,1], 'r--')
+        plt.xlim([-0.1, 1.2])
+        plt.ylim([-0.1, 1.2])
+        plt.ylabel('True Positive Rate')
+        plt.xlabel('False Positive Rate')
+        plt.savefig("D:\\Documents\\KNN3\\LL\\"+patient_num+"_roc.png")
+        plt.close()
+        return accuracy, precision, recall, f1, total_confmat, total_fpr, total_tpr

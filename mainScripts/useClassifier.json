@@ -1,10 +1,10 @@
 {
-    "CSVInDir" : "/Users/rsburugula/Documents/Etc/Pranav/YHS/ScienceResearch/Data/output/LL_PreIctal",
-    "CSVInDir_LineLength" : "/Users/rsburugula/Documents/Etc/Pranav/YHS/ScienceResearch/Data/output/LL_PreIctal",
-    "CSVInDir_FFT" : "/Users/rsburugula/Documents/Etc/Pranav/YHS/ScienceResearch/Data/output/FFT_PreIctal",
-    "resultsFile" : "/Users/rsburugula/Documents/Etc/Pranav/YHS/ScienceResearch/Data/output/classifierResults/resultsLL.csv",
-    "resultsFileLL" : "/Users/rsburugula/Documents/Etc/Pranav/YHS/ScienceResearch/Data/output/classifierResults/resultsLL.csv",
-    "resultsFileFFT" : "/Users/rsburugula/Documents/Etc/Pranav/YHS/ScienceResearch/Data/output/classifierResults/resultsFFT.csv",
+    "CSVInDir" : "D:\\Documents\\LL_PreIctal",
+    "CSVInDir_LineLength" : "D:\\Documents\\LL_PreIctal",
+    "CSVInDir_FFT" : "D:\\Documents\\FFT_PreIctal",
+    "resultsFile" : "D:\\Documents\\resultsLL.csv",
+    "resultsFileLL" : "D:\\Documents\\resultsLL.csv",
+    "resultsFileFFT" : "D:\\Documents\\resultsFFT.csv",
     "SubjectNames_all" : ["chb01", "chb02", "chb03", "chb04", "chb05",
                           "chb06", "chb07", "chb08", "chb09", "chb10",
                           "chb11", "chb12", "chb13", "chb14", "chb15",
@@ -12,5 +12,6 @@
                           "chb21", "chb22", "chb23", "chb24"],
     "SubjectNames" : ["chb01"],
     "OutDir" : "/Users/rsburugula/Documents/tmp/chb_all",
-    "PreIctalOffsets" : [30, 60, 90, 180, 240, 300]
+    "PreIctalOffsets_all" : [30, 60, 90, 180, 240, 300],
+    "PreIctalOffsets" : [30]
 }
