@@ -72,7 +72,7 @@ class KNNClassifier():
                 ax.text(x=j, y=i, s=confmat[i,j], va='center', ha='center')
         plt.xlabel('predicted label')
         plt.ylabel('true label')
-        plt.savefig("D:\\Documents\\KNN3\\LL\\"+patient_num+"_confmat.png")
+        plt.savefig("D:\\Documents\\KNN3\\FFT\\"+patient_num+"_confmat.png")
         plt.close()
         probas = self.classifier.predict_proba(self.X_test)
         fpr, tpr, thresholds = roc_curve(self.y_test, probas[:,1], pos_label=1)
@@ -95,6 +95,6 @@ class KNNClassifier():
         plt.ylim([-0.1, 1.2])
         plt.ylabel('True Positive Rate')
         plt.xlabel('False Positive Rate')
-        plt.savefig("D:\\Documents\\KNN3\\LL\\"+patient_num+"_roc.png")
+        plt.savefig("D:\\Documents\\KNN3\\FFT\\"+patient_num+"_roc.png")
         plt.close()
         return accuracy, precision, recall, f1, total_confmat, total_fpr, total_tpr

@@ -40,7 +40,7 @@ class DNNClassifier(object):
         self.classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,
                                                     hidden_units=[10, 20, 10],
                                                     n_classes=2,
-                                                    model_dir="DNNClassifier_Data")
+                                                    model_dir="DNNClassifier_Data_FFT")
             
         print('Initialized')
 
@@ -112,6 +112,7 @@ class DNNClassifier(object):
         print("Recall: %.2f" % recall)
         print("F1: %.2f" % f1)
         line = str(accuracy)+","+str(precision)+","+str(recall)+","+str(f1)+","
+        f.write(line)
         confmat = confusion_matrix(self.y_test, y_pred)
         for i in range(0,2):
             for j in range(0,2):
@@ -123,7 +124,7 @@ class DNNClassifier(object):
                 ax.text(x=j, y=i, s=confmat[i,j], va='center', ha='center')
         plt.xlabel('predicted label')
         plt.ylabel('true label')
-        plt.savefig("D:\\Documents\\DNN3\\LL\\"+patient_num+"_confmat.png")
+        plt.savefig("D:\\Documents\\DNN3\\FFT\\"+patient_num+"_confmat.png")
         plt.close()
         probas = self.classifier.predict_proba(input_fn=self.get_test_inputs_only, as_iterable=False)
         print ("probas.shape = ", probas.shape)
@@ -147,6 +148,6 @@ class DNNClassifier(object):
         plt.ylim([-0.1, 1.2])
         plt.ylabel('True Positive Rate')
         plt.xlabel('False Positive Rate')
-        plt.savefig("D:\\Documents\\DNN3\\LL\\"+patient_num+"_roc.png")
+        plt.savefig("D:\\Documents\\DNN3\\FFT\\"+patient_num+"_roc.png")
         plt.close()
         return accuracy, precision, recall, f1, total_confmat, total_fpr, total_tpr

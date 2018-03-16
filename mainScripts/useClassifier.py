@@ -198,9 +198,9 @@ if __name__ == '__main__':
         processSubject(subject+".preictal."+str(preictalOffsets[5]))
         
     f.write("\n")
-    f.write(str(knn_accuracies/22)+","+str(knn_precisions/22)+","+str(knn_recalls/22)+","+str(knn_f1s/22)+","+
-            str(dnn_accuracies/22)+","+str(dnn_precisions/22)+","+str(dnn_recalls/22)+","+str(dnn_f1s/22)+","+
-            str(svm_accuracies/22)+","+str(svm_precisions/22)+","+str(svm_recalls/22)+","+str(svm_f1s/22))
+    f.write(str(knn_accuracies/154)+","+str(knn_precisions/154)+","+str(knn_recalls/154)+","+str(knn_f1s/154)+","+
+            str(dnn_accuracies/154)+","+str(dnn_precisions/154)+","+str(dnn_recalls/154)+","+str(dnn_f1s/154)+","+
+            str(svm_accuracies/154)+","+str(svm_precisions/154)+","+str(svm_recalls/154)+","+str(svm_f1s/154))
 #     f.write(str(svm_accuracies/22)+","+str(svm_precisions/22)+","+str(svm_recalls/22)+","+str(svm_f1s/22))
       
     f.close()
@@ -293,13 +293,13 @@ if __name__ == '__main__':
             ax.text(x=j, y=i, s=total_confmat_knn[i,j], va='center', ha='center')
     plt.xlabel('predicted label')
     plt.ylabel('true label')
-    plt.savefig("D:\\Documents\\KNN3\\LL\\total_confmat.png")
+    plt.savefig("D:\\Documents\\KNN3\\FFT\\total_confmat.png")
     plt.close()
     
     total_fpr_knn.sort()
     total_tpr_knn.sort()
     roc_auc_knn = auc(total_fpr_knn, total_tpr_knn)
-    plt.title('KNN LL ROC Curve')
+    plt.title('KNN FFT ROC Curve')
     plt.plot(total_fpr_knn, total_tpr_knn, 'b', label='AUC = %.2F' % roc_auc_knn)
     plt.legend(loc='lower right')
     plt.plot([0,1], [0,1], 'r--')
@@ -307,7 +307,7 @@ if __name__ == '__main__':
     plt.ylim([-0.1, 1.2])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.savefig("D:\\Documents\\KNN3\\LL\\total_roc.png")
+    plt.savefig("D:\\Documents\\KNN3\\FFT\\total_roc.png")
     plt.close()
 # #     
 #     s_dnn = UnivariateSpline(total_fpr_dnn, total_tpr_dnn, k=2)
@@ -321,7 +321,7 @@ if __name__ == '__main__':
             ax.text(x=j, y=i, s=total_confmat_dnn[i,j], va='center', ha='center')
     plt.xlabel('predicted label')
     plt.ylabel('true label')
-    plt.savefig("D:\\Documents\\DNN3\\LL\\total_confmat.png")
+    plt.savefig("D:\\Documents\\DNN3\\FFT\\total_confmat.png")
     plt.close()
 #       
     total_fpr_dnn.sort()
@@ -329,7 +329,7 @@ if __name__ == '__main__':
     print(total_fpr_dnn)
     print(total_tpr_dnn)
     roc_auc_dnn = auc(total_fpr_dnn, total_tpr_dnn)
-    plt.title('DNN ROC Curve')
+    plt.title('DNN FFT ROC Curve')
     plt.plot(total_fpr_dnn, total_tpr_dnn, 'b', label='AUC = %.2F' % roc_auc_dnn)
     plt.legend(loc='lower right')
     plt.plot([0,1], [0,1], 'r--')
@@ -337,7 +337,7 @@ if __name__ == '__main__':
     plt.ylim([-0.1, 1.2])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.savefig("D:\\Documents\\DNN3\\LL\\total_roc.png")
+    plt.savefig("D:\\Documents\\DNN3\\FFT\\total_roc.png")
     plt.close()
 #      
 #     s_svm = UnivariateSpline(total_fpr_svm, total_tpr_svm, k=2)
@@ -351,13 +351,13 @@ if __name__ == '__main__':
             ax.text(x=j, y=i, s=total_confmat_svm[i,j], va='center', ha='center')
     plt.xlabel('predicted label')
     plt.ylabel('true label')
-    plt.savefig("D:\\Documents\\SVM3\\LL\\total_confmat.png")
+    plt.savefig("D:\\Documents\\SVM3\\FFT\\total_confmat.png")
     plt.close()
 #      
     total_fpr_svm.sort()
     total_tpr_svm.sort()
     roc_auc_svm = auc(total_fpr_svm, total_tpr_svm)
-    plt.title('SVM LL ROC Curve')
+    plt.title('SVM FFT ROC Curve')
     plt.plot(total_fpr_svm, total_tpr_svm, 'b', label='AUC = %.2F' % roc_auc_svm)
     plt.legend(loc='lower right')
     plt.plot([0,1], [0,1], 'r--')
@@ -365,5 +365,5 @@ if __name__ == '__main__':
     plt.ylim([-0.1, 1.2])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.savefig("D:\\Documents\\SVM3\\LL\\total_roc.png")
+    plt.savefig("D:\\Documents\\SVM3\\FFT\\total_roc.png")
     plt.close()
