@@ -1,87 +1,135 @@
+'''
+Created on Dec 31, 2017
+
+@author: pb8xe
+'''
 import numpy as np
+import collections
+from sklearn.cross_validation import train_test_split
+from sklearn.preprocessing.data import StandardScaler
 import tensorflow as tf
+from util.ElapsedTime import ElapsedTime
+from tensorflow.contrib.learn.python.learn.estimators.estimator import SKCompat
+from tensorflow.contrib.metrics.python.metrics.classification import accuracy
+from tensorflow.contrib.learn import ProblemType, PredictionType
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, roc_curve, auc
+import matplotlib.pyplot as plt
 
-class LSTMModel(object):
-    def __init__(self, input, is_training, num_steps, num_channels, dropout=0.5, init_scale=0.05):
-        self.is_training = is_training
-        self.input_obj = input
-        self.batch_size = 512
-        self.num_channels = num_channels
-        self.hidden_size = 100
-        self.num_layers = 1
-        self.num_steps = num_steps
+class RNNClassifier(object):
+    '''
+    classdocs
+    '''
+
+
+    def __init__(self, csv_path_train, csv_path_test):
+        '''
+        Constructor
+        '''
+        self.csv_path_train = csv_path_train
+        self.csv_path_test = csv_path_test
+        self.Dataset = collections.namedtuple('Dataset', ['data', 'target'])
         
-        if self.is_training and dropout < 1:
-            self.input_obj = tf.nn.dropout(self.input_obj, dropout)
-        
-        self.init_state = tf.placeholder(tf.float32, [self.num_layers, 2, self.batch_size, self.hidden_size])
+        # Specify that all features have real-value data
+        feature_columns = [tf.contrib.layers.real_valued_column("", dimension=184)]
+        # Build 3 layer DNN with 10, 20, 10 units respectively.
+        self.classifier = tf.contrib.learn.RNNClassifier(problem_type=ProblemType.LINEAR_REGRESSION,
+                                                    prediction_type=PredictionType.MULTIPLE_VALUE,
+                                                    sequence_feature_columns=feature_columns,
+                                                    num_units=[152, 2],
+                                                    cell_type='lstm')
+            
+        print('Initialized')
 
-        state_per_layer_list = tf.unstack(self.init_state, axis=0)
-        rnn_tuple_state = tuple(
-            [tf.contrib.rnn.LSTMStateTuple(state_per_layer_list[idx][0], state_per_layer_list[idx][1])
-            for idx in range(self.num_layers)]
-        )
-
-        cell = tf.contrib.rnn.LSTMCell(self.hidden_size, forget_bias=1.0)
-        if self.is_training and dropout < 1:
-            cell = tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=dropout)
-        if self.num_layers>1:
-            cell = tf.contrib.rnn.MultiRNNCell([cell for _ in range(self.num_layers)], state_is_tuple=True)
-        
-        output, self.state = tf.nn.dynamic_rnn(cell, self.input_obj, dtype=tf.float32, initial_state=rnn_tuple_state)
-        output = tf.reshape(output, [-1, self.hidden_size])
-
-        softmax_w = tf.Variable(tf.random_uniform([self.hidden_size, self.num_channels], -init_scale, init_scale))
-        softmax_b = tf.Variable(tf.random_uniform([self.num_channels], -init_scale, init_scale))
-        logits = tf.nn.xw_plus_b(output, softmax_w, softmax_b)
-
-        logits = tf.reshape(logits, [self.batch_size, self.num_steps, self.num_channels])
-
-        loss = tf.contrib.seq2seq.sequence_loss(
-            logits,
-            self.input_obj.targets,
-            tf.ones([self.batch_size, self.num_steps], dtype=tf.float32),
-            average_across_timesteps=True,
-            average_across_batch = False
-        )
-        self.cost = tf.reduce_sum(loss)
-
-        self.softmax_out = tf.nn.softmax(tf.reshape(logits, [-1, self.num_channels]))
-        self.predict = tf.cast(tf.argmax(self.softmax_out, axis=1), tf.int32)
-        correct_prediction = tf.equal(self.predict, tf.reshape(self.input_obj.targets, [-1]))
-        self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-        if not self.is_training:
-            return
-        self.learning_rate = tf.Variable(0.0, trainable=False)
-
-        tvars = tf.trainable_variables()
-        grads, _ = tf.clip_by_global_norm(tf.gradients(self.cost, tvars), 5)
-        optimizer = tf.train.GradientDescentOptimizer(self.learning_rate)
-        self.train_op = optimizer.apply_gradients(
-            zip(grads, tvars),
-            global_step=tf.contrib.framework.get_or_create_global_step()
-        )
-
-        self.new_lr = tf.placeholder(tf.float32, shape=[])
-        self.lr_update = tf.assign(self.learning_rate, self.new_lr)
-
-    def assign_lr(self, session, lr_value):
-        session.run(self.lr_update, feed_dict={self.new_lr:lr_value})
-
-def train(train_data, num_channels, num_layers, num_epochs, batch_size, model_save_name, learning_rate=1.0, max_lr_epoch = 10, lr_decay=0.93):
-    m = LSTMModel(train_data, num_steps = 21, is_training=True, num_channels=num_channels)
-    init_op = tf.global_variables_initializer()
+    # Define the training inputs
+    def get_train_inputs(self):
+        x = tf.constant(self.train_dataset.data)
+        y = tf.constant(self.train_dataset.target)
     
-    orig_decay = lr_decay
-    with tf.Session() as sess:
-        sess.run([init_op])
-        coord = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(coord=coord)
-        saver = tf.train.Saver()
+        return x, y
 
-        for epoch in range(num_epochs):
-            new_lr_decay = orig_decay ** max(epoch + 1 - max_lr_epoch, 0.0)
-            m.assign_lr(sess, learning_rate * new_lr_decay)
-            current_state = np.zeros((num_layers, 2, batch_size, m.hidden_size))
-            for step in range()
+    def create_arrays(self):
+        arr_train = np.genfromtxt(self.csv_path_train, delimiter=',', skip_header=1)
+        print(arr_train.shape)
+        self.X_train = np.delete(arr_train, [arr_train.shape[1]-1], axis=1)
+        print(self.X_train.shape)
+        self.y_train = np.delete(arr_train, list(range(arr_train.shape[1]-1)), axis=1)
+        print(self.y_train.shape)
+        
+        arr_test = np.genfromtxt(self.csv_path_test, delimiter=',', skip_header=1)
+        print(arr_test.shape)
+        self.X_test = np.delete(arr_test, [arr_test.shape[1]-1], axis=1)
+        print(self.X_test.shape)
+        self.y_test = np.delete(arr_test, list(range(arr_test.shape[1]-1)), axis=1)
+        print(self.y_test.shape)
+    
+    def preprocess(self):
+        sc = StandardScaler()
+        sc.fit(self.X_train)
+        X_train_std = sc.transform(self.X_train)
+        X_test_std = sc.transform(self.X_test)
+        self.train_dataset = self.Dataset(data=X_train_std, target=self.y_train)
+        self.test_dataset = self.Dataset(data=X_test_std, target=self.y_test)
+    
+    def train(self):
+        self.create_arrays()
+        self.preprocess()
+        timer = ElapsedTime()
+        timer.reset()
+        print('Started training')
+
+# Fit model.
+        self.classifier.fit(input_fn=self.get_train_inputs, steps=20)
+        print('Ended in: ', timer.timeDiff())
+        
+    def get_test_inputs(self):
+        x = tf.constant(self.test_dataset.data)
+        y = tf.constant(self.test_dataset.target)
+        
+        return x, y
+
+    def get_test_inputs_only(self):
+        return tf.constant(self.test_dataset.data)
+    
+    def test(self, f, patient_num, total_fpr, total_tpr):
+        print('Started testing')
+
+        score = list(self.classifier.predict(input_fn=self.get_test_inputs_only))
+        y_pred = np.array(score).astype(int)
+        accuracy = accuracy_score(self.y_test, y_pred)
+        precision = accuracy_score(self.y_test, y_pred)
+        recall = recall_score(self.y_test, y_pred)
+        print("Accuracy: %.2f" % accuracy)
+        print("Precision: %.2f" % precision)
+        print("Recall: %.2f" % recall)
+        line = str(accuracy)+","+str(precision)+","+str(recall)
+        f.write(line)
+        f.write("\n")
+        confmat = confusion_matrix(self.y_test, y_pred)
+        fig, ax = plt.subplots(figsize=(2.5, 2.5))
+        ax.matshow(confmat, cmap=plt.cm.Blues, alpha=0.3)
+        for i in range(confmat.shape[0]):
+            for j in range(confmat.shape[1]):
+                ax.text(x=j, y=i, s=confmat[i,j], va='center', ha='center')
+        plt.xlabel('predicted label')
+        plt.ylabel('true label')
+        plt.savefig("D:\\Documents\\RNN\\FFTtest\\chb"+patient_num+"_confmat.png")
+        plt.close()
+        fpr, tpr, thresholds = roc_curve(self.y_test, y_pred)
+        print("fpr", fpr)
+        print("tpr", tpr)
+        total_fpr[1]+=fpr[len(fpr)-2]
+        total_tpr[1]+=tpr[len(tpr)-2]
+        print(total_fpr)
+        print(total_tpr)
+        roc_auc = auc(fpr, tpr)
+        plt.title('ROC Curve')
+        plt.plot(fpr, tpr, 'b', label='AUC = %.2F' % roc_auc)
+        plt.legend(loc='lower right')
+        plt.plot([0,1], [0,1], 'r--')
+        plt.xlim([-0.1, 1.2])
+        plt.ylim([-0.1, 1.2])
+        plt.ylabel('True Positive Rate')
+        plt.xlabel('False Positive Rate')
+        plt.savefig("D:\\Documents\\RNN\\FFTtest\\chb"+patient_num+"roc.png")
+        plt.close()
+        return total_fpr, total_tpr
