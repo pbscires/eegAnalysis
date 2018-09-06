@@ -17,7 +17,7 @@ feature_names = ["FP1-F7", "F7-T7", "T7-P7",
         "P8-O2", "FZ-CZ", "CZ-PZ", "P7-T7", 
         "T7-FT9", "FT9-FT10", "FT10-T8", "T8-P8"]
 
-sequenceLen = 20
+sequenceLen = 100
 numChannels = 19
 
 def read_input_file(filename):
@@ -27,21 +27,30 @@ def read_input_file(filename):
     return (df)
 
 def generateCSVperFeature(channelNum, feature_files, df):
-    print ("generating CSV file ", feature_files[i])
+    print ("generating CSV file ", feature_files[channelNum])
     # df = df.splice()
     feature_series = df[feature_names[channelNum]]
     print ("feature_series shape = ", feature_series.shape)
     # Reshape the feature_series data frame into n_rows x sequenceLen matrix,
     # where n_rows = feature_series.shape[0] // seuquenceLen
-    n_rows = feature_series.shape[0] // sequenceLen
-    n_cols = sequenceLen
-    print ("n_rows * n_cols = ", n_rows * n_cols)
-    feature_series = feature_series.truncate(after = (n_rows * n_cols - 1))
-    print (feature_series.shape)
-    feature_series = pd.DataFrame(feature_series.values.reshape(n_rows, n_cols))
-    print (feature_series.shape)
-    feature_df = pd.DataFrame(data=feature_series)
-    feature_df.to_csv(feature_files[i], header=False, index=False)
+    last_row = feature_series.shape[0] - sequenceLen
+    # feature_df = pd.DataFrame(np.zeros((last_row, sequenceLen), dtype=np.float))
+    feature_df = pd.DataFrame(dtype=np.float)
+    print ("feature_df.shape = ", feature_df.shape)
+    for i in range(0, last_row):
+        feature_df[i] = np.array(feature_series[i:(i+sequenceLen)])
+    feature_df = feature_df.transpose()
+    print ("feature_df.shape = ", feature_df.shape)
+    # return
+    # n_rows = feature_series.shape[0] // sequenceLen
+    # n_cols = sequenceLen
+    # print ("n_rows * n_cols = ", n_rows * n_cols)
+    # feature_series = feature_series.truncate(after = (n_rows * n_cols - 1))
+    # print (feature_series.shape)
+    # feature_series = pd.DataFrame(feature_series.values.reshape(n_rows, n_cols))
+    # print (feature_series.shape)
+    # feature_df = pd.DataFrame(data=feature_series)
+    feature_df.to_csv(feature_files[channelNum], header=False, index=False)
 
 if __name__ == '__main__':
     print ("in main")

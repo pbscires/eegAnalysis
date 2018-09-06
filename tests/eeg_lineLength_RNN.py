@@ -5,12 +5,12 @@ import shutil
 from tensorflow.contrib.learn import ModeKeys
 import tensorflow.contrib.rnn as rnn
 
-SEQ_LEN = 20
+SEQ_LEN = 100
 N_COLUMNS = SEQ_LEN
 DEFAULTS = [[0.0] for x in range(0, N_COLUMNS)]
 BATCH_SIZE = 100
 TIMESERIES_COL = 'rawdata'
-N_OUTPUTS = 5  # in each sequence, 1-18 are features, and 19-20 is label
+N_OUTPUTS = 10  # in each sequence, 1-18 are features, and 19-20 is label
 N_INPUTS = SEQ_LEN - N_OUTPUTS
 
 # read data and convert to needed format
@@ -108,10 +108,10 @@ def simple_rnn(features, labels, mode, params):
 
 
 def get_train():
-    return read_dataset('chb03/chb03_train_feature_F7-T7.csv', mode=ModeKeys.TRAIN)
+    return read_dataset('chb03/LineLength.chb03_04.edf_feature_FP1-F7_train.csv', mode=ModeKeys.TRAIN)
 
 def get_valid():
-    return read_dataset('chb03/chb03_valid_feature_F7-T7.csv', mode=ModeKeys.EVAL)
+    return read_dataset('chb03/LineLength.chb03_04.edf_feature_FP1-F7_valid.csv', mode=ModeKeys.EVAL)
 
 def serving_input_receiver_fn():
     feature_placeholders = {
@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
     print (tf.__version__)
     
-    OUTPUT_DIR = 'outputdir6'
+    OUTPUT_DIR = 'outputdir7'
     shutil.rmtree(OUTPUT_DIR, ignore_errors=True) # start fresh each time
     
     experiment_fn(OUTPUT_DIR)
